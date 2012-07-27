@@ -13,7 +13,7 @@ var Message = require('../message')
 
 test('Display a message', function(t) {
   var file = 'oreilly.com-response'
-  fs.readFile(__dirname+'/data/'+file, function(er, data) {
+  fs.readFile(__dirname+'/../test_data/'+file, function(er, data) {
     if(er)
       throw er
 
