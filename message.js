@@ -51,9 +51,9 @@ function DNSMessage (body) {
 DNSMessage.prototype.parse = function(body) {
   var self = this
 
-  self.id = parse.id(self.body)
+  self.id = parse.id(body)
 
-  var qr = parse.qr(self.body)
+  var qr = parse.qr(body)
   self.type = (qr == 0) ? 'request' : 'response'
 
   self.responseCode = parse.rcode(body)
@@ -70,11 +70,11 @@ DNSMessage.prototype.parse = function(body) {
   self.checking_disabled   = !! parse.cd(body)
 
   SECTIONS.forEach(function(section) {
-    var count = parse.record_count(self.body, section)
-    if(count !== null) {
+    var count = parse.record_count(body, section)
+    if(count) {
       self[section] = []
       for(var i = 0; i < count; i++)
-        self[section].push(new DNSRecord(self.body, section, i))
+        self[section].push(new DNSRecord(body, section, i))
     }
   })
 }
@@ -89,7 +89,7 @@ DNSMessage.prototype.toString = function() {
              , util.format("Truncated          : %s", self.truncated)
              , util.format("Recursion Desired  : %s", self.recursion_desired)
              , util.format("Recursion Available: %s", self.recursion_available)
-             , util.format("Response Code      : %d", self.response)
+             , util.format("Response Code      : %d", self.responseCode)
              ]
 
   SECTIONS.forEach(function(section) {
@@ -104,30 +104,23 @@ DNSMessage.prototype.toString = function() {
   return info.join('\n')
 }
 
-DNSMessage.prototype.toJSON = function() {
-  var result = {}
-  for(var key in this) {
-    if(key != 'body')
-      result[key] = this[key]
-  }
-  return result
-}
-
 
 // An individual record from a DNS message
 //
 // Attributes:
-// * name        - Host name
-// * type        - Query type ('A', 'NS', 'CNAME', etc. or 'Unknown')
-// * query_class - Network class ('IN', 'None' 'Unknown')
-// * ttl         - Time to live for the data in the record
-// * data        - The record data value, or null if not applicable
+// * name  - Host name
+// * type  - Query type ('A', 'NS', 'CNAME', etc. or 'Unknown')
+// * class - Network class ('IN', 'None' 'Unknown')
+// * ttl   - Time to live for the data in the record
+// * data  - The record data value, or null if not applicable
 function DNSRecord (body, section_name, record_num) {
   this.name = null
   this.type = null
-  this.query_class = null
-  this.ttl  = null
-  this.data = null
+  this.class = null
+
+  // Leave these undefined for more consice and clear JSON serialization.
+  //this.ttl  = null
+  //this.data = null
 
   this.parse(body, section_name, record_num)
 }
@@ -136,21 +129,30 @@ DNSRecord.prototype.parse = function(body, section_name, record_num) {
   var self = this
 
   self.name = parse.record_name(body, section_name, record_num)
-  self.ttl  = parse.record_ttl(body, section_name, record_num)
-  self.query_class = parse.record_class(body, section_name, record_num)
+
+  var clas = parse.record_class(body, section_name, record_num)
+  self.class = record_class_label(clas)
+  if(! self.class)
+    throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown class: ' + type)
 
   var type = parse.record_type(body, section_name, record_num)
   self.type = record_type_label(type)
   if(! self.type)
     throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown type: ' + type)
 
+  if(section_name == 'question')
+    return
+
+  self.ttl  = parse.record_ttl(body, section_name, record_num)
+
   var rdata = parse.record_data(body, section_name, record_num)
   if(self.type == 'A' && rdata.length == 4)
     self.data = inet_ntoa(rdata)
   else if(~ ['NS', 'CNAME', 'SOA', 'PTR'].indexOf(self.type))
-    self.data = parse.uncompress(body, rdata) // XXX: I think it doesn't work this way.
+    self.data = parse.uncompress(body, rdata)
+    //self.data = rdata //parse.uncompress(body, rdata) // XXX: I think it doesn't work this way.
   else if(self.type == 'MX')
-    self.data = parse.mx(rdata)
+    self.data = parse.mx(body, rdata)
   else
     self.data = rdata
 }
@@ -158,10 +160,14 @@ DNSRecord.prototype.parse = function(body, section_name, record_num) {
 DNSRecord.prototype.toString = function() {
   var self = this
   return [ width(23, self.name)
-         , width( 7, self.ttl)
-         , width( 7, self.query_class)
+         , width( 7, self.ttl || '')
+         , width( 7, self.class)
          , width( 7, self.type)
-         , Buffer.isBuffer(self.data) ? self.data.toString('hex') : self.data
+         , self.type == 'MX' && self.data
+            ? (width(3, self.data[0]) + ' ' + self.data[1])
+           : Buffer.isBuffer(self.data)
+            ? self.data.toString('hex')
+            : self.data || ''
          ].join(' ')
 }
 
@@ -170,6 +176,7 @@ DNSRecord.prototype.toString = function() {
 //
 
 function width(str_len, str) {
+  str = '' + str
   do {
     var needed = str_len - str.length
     if(needed > 0)
@@ -177,6 +184,44 @@ function width(str_len, str) {
   } while(needed > 0)
 
   return str
+}
+
+function inet_ntoa(buf) {
+  return buf[0] + '.' + buf[1] + '.' + buf[2] + '.' + buf[3]
+}
+
+function record_class_label(clas) {
+  if(isNaN(clas) || typeof clas != 'number' || clas < 1 || clas > 65535)
+    throw new Error('Invalid record class: ' + clas)
+
+  var classes =
+    { 0: 'reserved'
+    , 1: 'IN'
+    , 2: null
+    , 3: 'CH'
+    , 4: 'HS'
+    // 5 - 127 unassigned classes
+    // 128 - 253 unassigned qclasses
+    , 254: 'NONE'
+    , 255: '*'
+    // 256 - 32767 unassigned
+    // 32768 - 57343 unassigned
+    // 57344 - 65279 unassigned qclasses and metaclasses
+    // 65280 - 65534 Private use
+    , 65535: 'reserved'
+    }
+
+  var unassigned = [ [5,253], [256,65279] ]
+  unassigned.forEach(function(pair) {
+    var start = pair[0], stop = pair[1]
+    for(var i = start; i <= stop; i++)
+      classes[i] = null
+  })
+
+  for(var i = 65280; i <= 65534; i++)
+    classes[i] = 'Private use'
+
+  return classes[clas]
 }
 
 function record_type_label(type) {
@@ -237,13 +282,13 @@ function record_type_label(type) {
     , 50: 'NSEC3'
     , 51: 'NSEC3PARAM'
     , 52: 'TLSA'
-    // 53 - 54 Unassigned
+    // 53 - 54 unassigned
     , 55: 'HIP'
     , 56: 'NINFO'
     , 57: 'RKEY'
     , 58: 'TALINK'
     , 59: 'CDS'
-    // 60 - 98 Unassigned
+    // 60 - 98 unassigned
     , 99: 'SPF'
     , 100: 'UINFO'
     , 101: 'UID'
@@ -253,7 +298,7 @@ function record_type_label(type) {
     , 105: 'L32'
     , 106: 'L64'
     , 107: 'LP'
-    // 108 - 248 Unassigned
+    // 108 - 248 unassigned
     , 249: 'TKEY'
     , 250: 'TSIG'
     , 251: 'IXFR'
@@ -263,10 +308,10 @@ function record_type_label(type) {
     , 255: '*'
     , 256: 'URI'
     , 257: 'CAA'
-    // 258 - 32767 Unassigned
+    // 258 - 32767 unassigned
     , 32768: 'TA'
     , 32769: 'DLV'
-    // 32770 - 65279 Unassigned
+    // 32770 - 65279 unassigned
     // 65280 - 65534 Private use
     , 65535: 'Reserved'
     }
