@@ -153,11 +153,10 @@ DNSRecord.prototype.parse = function(body, section_name, record_num) {
     self.data = inet_ntoa(rdata)
   else if(~ ['NS', 'CNAME', 'SOA', 'PTR'].indexOf(self.type))
     self.data = parse.uncompress(body, rdata)
-    //self.data = rdata //parse.uncompress(body, rdata) // XXX: I think it doesn't work this way.
   else if(self.type == 'MX')
     self.data = parse.mx(body, rdata)
   else
-    self.data = rdata
+    self.data = Array.prototype.slice.call(rdata)
 }
 
 DNSRecord.prototype.toString = function() {
