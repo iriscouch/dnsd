@@ -34,6 +34,9 @@ var SECTIONS = ['question', 'answer', 'authority', 'additional']
 // * toString() - return a human-readable representation of this message
 // * toJSON() - Return a JSON-friendly represenation of this message
 function DNSMessage (body) {
+  if(! Buffer.isBuffer(body))
+    throw new Error('Must provide a buffer argument with message data')
+
   this.id = null
   this.type                = null
   this.responseCode        = null
