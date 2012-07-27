@@ -21,8 +21,11 @@ test('Display a message', function(t) {
       , str = util.format('%s', msg)
       , json = util.format('%j', msg)
 
-    t.ok(str, 'Message can stringify')
-    t.ok(json, 'Message can JSONify')
+    t.type(str, 'string', 'Message can stringify')
+
+    var obj = JSON.parse(util.format('%j', msg))
+    t.equal(obj.id, 1, 'JSON round-trip: id')
+    t.equal(obj.type, 'response', 'JSON round-trip: type')
 
     t.end()
   })

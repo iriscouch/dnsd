@@ -13,30 +13,61 @@ var SECTIONS = ['question', 'answer', 'authority', 'additional']
 // standard DNS queries and responses.
 //
 // Attributes:
-// * id - a number representing the unique query ID
-// * flags - a DNSFlags object from the header flags
-// * question (optional) - a DNSRecord of the question section
-// * answer (optional) - a DNSRecord of the answer section
-// * authority (optional) - a DNSRecord of the authority section
-// * additional (optional) - a DNSRecord of the additional section
-// * body - a Buffer containing the raw message data
+// * id                  - a number representing the unique query ID
+// * type                - "request" or "response"
+// * response            - Number (server response code)
+// * opcode              - "query", "iquery", "status", "unassigned", "notify", "update"
+// * authoritative       - Boolean
+// * truncated           - Boolean
+// * recursion_desired   - Boolean
+// * recursion_available - Boolean
+// * authenticated       - Boolean
+// * checking_disabled   - Boolean
+//
+// Optional attributes:
+// * question (optional) - Array of the question section
+// * answer (optional) - Array of the answer section
+// * authority (optional) - Array of the authority section
+// * additional (optional) - Array of the additional section
 //
 // Methods:
 // * toString() - return a human-readable representation of this message
 // * toJSON() - Return a JSON-friendly represenation of this message
-function DNSMessage (packet_data) {
+function DNSMessage (body) {
   this.id = null
-  this.flags = null
-  this.body = packet_data
+  this.type                = null
+  this.responseCode        = null
+  this.opcode              = null
+  this.authoritative       = null
+  this.truncated           = null
+  this.recursion_desired   = null
+  this.recursion_available = null
+  this.authenticated       = null
+  this.checking_disabled   = null
 
-  this.parse()
+  this.parse(body)
 }
 
-DNSMessage.prototype.parse = function() {
+DNSMessage.prototype.parse = function(body) {
   var self = this
 
   self.id = parse.id(self.body)
-  self.flags = new DNSFlags(self.body)
+
+  var qr = parse.qr(self.body)
+  self.type = (qr == 0) ? 'request' : 'response'
+
+  self.responseCode = parse.rcode(body)
+
+  var opcode_names = ['query', 'iquery', 'status', null, 'notify', 'update']
+  var opcode = parse.opcode(body)
+  self.opcode = opcode_names[opcode] || null
+
+  self.authoritative       = !! parse.aa(body)
+  self.truncated           = !! parse.tc(body)
+  self.recursion_desired   = !! parse.rd(body)
+  self.recursion_available = !! parse.ra(body)
+  self.authenticated       = !! parse.ad(body)
+  self.checking_disabled   = !! parse.cd(body)
 
   SECTIONS.forEach(function(section) {
     var count = parse.record_count(self.body, section)
@@ -50,10 +81,16 @@ DNSMessage.prototype.parse = function() {
 
 DNSMessage.prototype.toString = function() {
   var self = this
-  var info = []
 
-  info.push(util.format("ID     : %d", self.id))
-  info.push(self.flags.toString())
+  var info = [ util.format('ID                 : %d', self.id)
+             , util.format("Type               : %s", self.type)
+             , util.format("Opcode             : %s", self.opcode)
+             , util.format("Authoritative      : %s", self.authoritative)
+             , util.format("Truncated          : %s", self.truncated)
+             , util.format("Recursion Desired  : %s", self.recursion_desired)
+             , util.format("Recursion Available: %s", self.recursion_available)
+             , util.format("Response Code      : %d", self.response)
+             ]
 
   SECTIONS.forEach(function(section) {
     if(self[section]) {
@@ -75,60 +112,6 @@ DNSMessage.prototype.toJSON = function() {
   }
   return result
 }
-
-
-// Flags from a DNS message headers
-//
-// Attributes:
-// * type                - String ('question', 'answer')
-// * opcode              - "query", "iquery", "status", "unassigned", "notify", "update"
-// * authoritative       - Boolean
-// * truncated           - Boolean
-// * recursion_desired   - Boolean
-// * recursion_available - Boolean
-// * reponse             - Number (server response code)
-function DNSFlags (packet_data) {
-  this.type                = null
-  this.opcode              = null
-  this.authoritative       = null
-  this.truncated           = null
-  this.recursion_desired   = null
-  this.recursion_available = null
-  this.response            = null
-
-  this.parse(packet_data)
-}
-
-DNSFlags.prototype.parse = function(body) {
-  var self = this
-
-  var is_response = parse.flag(body, 'qr')
-  self.type = is_response ? 'answer' : 'question'
-
-  self.response            = parse.flag(body, 'rcode')
-  self.authoritative       = !! parse.flag(body, 'aa')
-  self.truncated           = !! parse.flag(body, 'tc')
-  self.recursion_desired   = !! parse.flag(body, 'rd')
-  self.recursion_available = !! parse.flag(body, 'ra')
-
-  var opcode_names = ['query', 'iquery', 'status', 'unassigned', 'notify', 'update']
-    , opcode = parse.flag(body, 'opcode')
-  self.opcode = opcode_names[opcode] || 'unassigned'
-}
-
-DNSFlags.prototype.toString = function() {
-  var self = this
-  return [ "Headers:"
-         , util.format("  Type               : %s", self.type)
-         , util.format("  Opcode             : %s", self.opcode)
-         , util.format("  Authoritative      : %s", self.authoritative)
-         , util.format("  Truncated          : %s", self.truncated)
-         , util.format("  Recursion Desired  : %s", self.recursion_desired)
-         , util.format("  Recursion Available: %s", self.recursion_available)
-         , util.format("  Response Code      : %d", self.response)
-         ].join('\n')
-}
-
 
 
 // An individual record from a DNS message
@@ -201,7 +184,7 @@ function record_type_label(type) {
     throw new Error('Invalid record type: ' + type)
 
   var types =
-    { 0: undefined
+    { 0: null
     , 1: 'A'
     , 2: 'NS'
     , 3: 'MD'
@@ -292,7 +275,7 @@ function record_type_label(type) {
   unassigned.forEach(function(pair) {
     var start = pair[0], stop = pair[1]
     for(var i = start; i <= stop; i++)
-      types[i] = 'Unassigned'
+      types[i] = null
   })
 
   for(var i = 65280; i <= 65534; i++)
