@@ -1,0 +1,20 @@
+{ "name": "iris-named"
+, "description": "Dynamic authoritative name server for Iris services"
+, "private": true
+
+, "keywords": [ "dns", "bind", "named", "iris" ]
+, "version": "0.1.0"
+, "author": "Jason Smith <jhs@iriscouch.com> (http://www.iriscouch.com)"
+, "repository": { "type":"git", "url":"https://github.com/iriscouch/iris-named" }
+
+, "engines": { "node": ">= 0.8" }
+, "main": "./iris-named.js"
+, "bin": "./cli.js"
+
+, "dependencies": { "optimist": "~0.3.4"
+                  , "defaultable": "~0.7.2"
+                  }
+
+, "devDependencies": { "tap": "~0.2.5"
+                     }
+}
