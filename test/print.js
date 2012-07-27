@@ -19,13 +19,19 @@ test('Display a message', function(t) {
 
     var msg = new Message(data)
       , str = util.format('%s', msg)
-      , json = util.format('%j', msg)
+      , json = JSON.stringify(msg)
 
     t.type(str, 'string', 'Message can stringify')
 
     var obj = JSON.parse(util.format('%j', msg))
-    t.equal(obj.id, 1, 'JSON round-trip: id')
+    t.equal(obj.id, 45753, 'JSON round-trip: id')
     t.equal(obj.type, 'response', 'JSON round-trip: type')
+    t.equal(obj.opcode, 'query', 'JSON round-trip: opcode')
+    t.equal(obj.authoritative, true, 'JSON round-trip: authoritative')
+    t.equal(obj.truncated, false, 'JSON round-trip: truncated')
+    t.equal(obj.recursion_desired, true, 'JSON round-trip: recursion_desired')
+    t.equal(obj.recursion_available, true, 'JSON round-trip: recursion_available')
+    t.equal(obj.responseCode, 0, 'JSON round-trip: responseCode')
 
     t.end()
   })
