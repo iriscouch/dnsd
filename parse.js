@@ -5,7 +5,15 @@
 var util = require('util')
 
 module.exports = { 'id': id
-                 , 'flag': flag
+                 , 'qr': qr
+                 , 'aa': aa
+                 , 'tc': tc
+                 , 'rd': rd
+                 , 'ra': ra
+                 , 'ad': ad
+                 , 'cd': cd
+                 , 'rcode': rcode
+                 , 'opcode': opcode
                  , 'record_count': record_count
                  , 'record_name' : record_name
                  , 'record_class': record_class
@@ -20,8 +28,40 @@ function id(msg) {
   return 1 // TODO
 }
 
-function flag(msg, label) {
+function qr(msg) {
   return 1 // TODO
+}
+
+function aa(msg) {
+  return 1 // TODO
+}
+
+function tc(msg) {
+  return 1 // TODO
+}
+
+function rd(msg) {
+  return 1 // TODO
+}
+
+function ra(msg) {
+  return 1 // TODO
+}
+
+function ad(msg) {
+  return 1 // TODO
+}
+
+function cd(msg) {
+  return 1 // TODO
+}
+
+function rcode(msg) {
+  return 0
+}
+
+function opcode(msg) {
+  return 0
 }
 
 function record_count(msg, name) {
