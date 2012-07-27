@@ -38,7 +38,12 @@ function record_class(msg, section_name, offset) {
 }
 
 function record_type(msg, section_name, offset) {
-  return 'ptr' // TODO
+  var result = 12 // ptr // TODO
+
+  if(result < 1 || result > 65535)
+    throw new Error('Invalid record type: ' + result)
+  else
+    return result
 }
 
 function record_ttl(msg, section_name, offset) {

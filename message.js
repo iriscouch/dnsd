@@ -157,28 +157,7 @@ DNSRecord.prototype.parse = function(body, section_name, record_num) {
   self.query_class = parse.record_class(body, section_name, record_num)
 
   var type = parse.record_type(body, section_name, record_num)
-    , types = { a     : 'A'
-              , ns    : 'NS'
-              , cname : 'CNAME'
-              , soa   : 'SOA'
-              , 'null': 'NULL'
-              , ptr   : 'PTR'
-              , hinfo : 'HINFO'
-              , mx    : 'MX'
-              , txt   : 'TXT'
-              , sig   : 'SIG'
-              , key   : 'KEY'
-              , aaaa  : 'AAAA'
-              , loc   : 'LOC'
-              , srv   : 'SRV'
-              , tsig  : 'TSIG'
-              , ixfr  : 'IXFR'
-              , axfr  : 'AXFR'
-              , any   : 'ANY'
-              , zxfr  : 'ZXFR'
-              }
-
-  self.type = types[type]
+  self.type = record_type_label(type)
   if(! self.type)
     throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown type: ' + type)
 
@@ -215,4 +194,109 @@ function width(str_len, str) {
   } while(needed > 0)
 
   return str
+}
+
+function record_type_label(type) {
+  if(isNaN(type) || typeof type != 'number' || type < 1 || type > 65535)
+    throw new Error('Invalid record type: ' + type)
+
+  var types =
+    { 0: undefined
+    , 1: 'A'
+    , 2: 'NS'
+    , 3: 'MD'
+    , 4: 'MF'
+    , 5: 'CNAME'
+    , 6: 'SOA'
+    , 7: 'MB'
+    , 8: 'MG'
+    , 9: 'MR'
+    , 10: 'NULL'
+    , 11: 'WKS'
+    , 12: 'PTR'
+    , 13: 'HINFO'
+    , 14: 'MINFO'
+    , 15: 'MX'
+    , 16: 'TXT'
+    , 17: 'RP'
+    , 18: 'AFSDB'
+    , 19: 'X25'
+    , 20: 'ISDN'
+    , 21: 'RT'
+    , 22: 'NSAP'
+    , 23: 'NSAP-PTR'
+    , 24: 'SIG'
+    , 25: 'KEY'
+    , 26: 'PX'
+    , 27: 'GPOS'
+    , 28: 'AAAA'
+    , 29: 'LOC'
+    , 30: 'NXT'
+    , 31: 'EID'
+    , 32: 'NIMLOC'
+    , 33: 'SRV'
+    , 34: 'ATMA'
+    , 35: 'NAPTR'
+    , 36: 'KX'
+    , 37: 'CERT'
+    , 38: 'A6'
+    , 39: 'DNAME'
+    , 40: 'SINK'
+    , 41: 'OPT'
+    , 42: 'APL'
+    , 43: 'DS'
+    , 44: 'SSHFP'
+    , 45: 'IPSECKEY'
+    , 46: 'RRSIG'
+    , 47: 'NSEC'
+    , 48: 'DNSKEY'
+    , 49: 'DHCID'
+    , 50: 'NSEC3'
+    , 51: 'NSEC3PARAM'
+    , 52: 'TLSA'
+    // 53 - 54 Unassigned
+    , 55: 'HIP'
+    , 56: 'NINFO'
+    , 57: 'RKEY'
+    , 58: 'TALINK'
+    , 59: 'CDS'
+    // 60 - 98 Unassigned
+    , 99: 'SPF'
+    , 100: 'UINFO'
+    , 101: 'UID'
+    , 102: 'GID'
+    , 103: 'UNSPEC'
+    , 104: 'NID'
+    , 105: 'L32'
+    , 106: 'L64'
+    , 107: 'LP'
+    // 108 - 248 Unassigned
+    , 249: 'TKEY'
+    , 250: 'TSIG'
+    , 251: 'IXFR'
+    , 252: 'AXFR'
+    , 253: 'MAILB'
+    , 254: 'MAILA'
+    , 255: '*'
+    , 256: 'URI'
+    , 257: 'CAA'
+    // 258 - 32767 Unassigned
+    , 32768: 'TA'
+    , 32769: 'DLV'
+    // 32770 - 65279 Unassigned
+    // 65280 - 65534 Private use
+    , 65535: 'Reserved'
+    }
+
+  var unassigned = [ [53,54], [60,98], [108,248], [258,32767], [32770,65279] ]
+  unassigned.forEach(function(pair) {
+    var start = pair[0], stop = pair[1]
+    for(var i = start; i <= stop; i++)
+      types[i] = 'Unassigned'
+  })
+
+  for(var i = 65280; i <= 65534; i++)
+    types[i] = 'Private use'
+
+  return types[type]
 }
