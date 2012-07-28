@@ -152,6 +152,27 @@ test('Message records', function(t) {
   t.end()
 })
 
+test('Encoding messages', function(t) {
+  var files = [ 'dynamic-update', 'oreilly.com-query', 'oreilly.com-response', 'www.company.example-query'
+              , 'www.company.example-response', 'www.microsoft.com-query', 'www.microsoft.com-response'
+              ]
+
+  files.forEach(function(file, i) {
+    var original = packet(file)
+      , message = API.parse(original)
+
+    var encoded
+    t.doesNotThrow(function() { encoded = API.binify(message) }, 'Encode: ' + file)
+
+    t.same(encoded, original, 'parse/stringify round-trip: ' + file)
+
+    var redecoded = API.parse(encoded)
+    t.same(redecoded, message, 'parse/stringify/parse round-trip: ' + file)
+  })
+
+  t.end()
+})
+
 function packet(name) {
   return fs.readFileSync(__dirname + '/../test_data/' + name)
 }
