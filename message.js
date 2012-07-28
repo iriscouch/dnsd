@@ -3,7 +3,9 @@
 // Test displaying DNS records
 
 var util = require('util')
+
 var parse = require('./parse')
+var encode = require('./encode')
 var constants = require('./constants')
 
 module.exports = DNSMessage
@@ -34,6 +36,7 @@ var SECTIONS = ['question', 'answer', 'authority', 'additional']
 // Methods:
 // * toString() - return a human-readable representation of this message
 // * toJSON() - Return a JSON-friendly represenation of this message
+// * toBinary() - Return a buffer of the encoded message
 function DNSMessage (body) {
   if(! Buffer.isBuffer(body))
     throw new Error('Must provide a buffer argument with message data')
@@ -81,6 +84,14 @@ DNSMessage.prototype.parse = function(body) {
         self[section].push(new DNSRecord(body, section, i))
     }
   })
+}
+
+DNSMessage.prototype.toBinary = function() {
+  var self = this
+
+  var state = new encode.State
+  state.message(this)
+  return state.toBinary()
 }
 
 DNSMessage.prototype.toString = function() {

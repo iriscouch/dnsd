@@ -128,7 +128,7 @@ function Response (data, peer) {
 
 Response.prototype.end = function() {
   var self = this
-  var data = require('fs').readFileSync(__dirname+'/test_data/oreilly.com-response')
+  var data = self.toBinary()
 
   if(self.peer.type == 'udp' && data.length > 512)
     return self.emit('error', 'UDP responses greater than 512 bytes not yet implemented')
