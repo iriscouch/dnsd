@@ -124,6 +124,9 @@ function Response (data, peer) {
 
   self.type = 'response'
 
+  if(DEFS.help_responses)
+    self.authoritative = true
+
   self.question   = self.question   || []
   self.answer     = self.answer     || []
   self.authority  = self.authority  || []
