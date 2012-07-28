@@ -3,6 +3,7 @@
 // Test DNS server
 
 var fs = require('fs')
+var net = require('net')
 var tap = require('tap')
 var test = tap.test
 var util = require('util')
@@ -67,6 +68,7 @@ test('UDP queries', function(t) {
   var i = 0
   var server = API.createServer(check_req)
   server.listen(PORT, '127.0.0.1')
+  server.on('listening', send_requests)
 
   function check_req(req, res) {
     t.type(req.question, 'Array', 'Got a question message')
@@ -90,11 +92,24 @@ test('UDP queries', function(t) {
     }
   }
 
-  Object.keys(reqs).forEach(function(domain) {
-    var data = fs.readFileSync(__dirname + '/../test_data/' + reqs[domain].name)
-    //sent.push(data)
+  function send_requests() {
+    var type = 'tcp'
+    Object.keys(reqs).forEach(function(domain) {
+      var data = fs.readFileSync(__dirname + '/../test_data/' + reqs[domain].name)
 
-    var sock = dgram.createSocket('udp4')
-    sock.send(data, 0, data.length, PORT, '127.0.0.1', function() { sock.close() })
-  })
+      if(type == 'udp') {
+        type = 'tcp'
+        var sock = dgram.createSocket('udp4')
+        sock.send(data, 0, data.length, PORT, '127.0.0.1', function() { sock.close() })
+      } else {
+        type = 'udp'
+        console.error('TCP to %d', PORT)
+        var sock = net.connect({'port':PORT}, function(er) {
+          sock.write(new Buffer([data.length >> 8, data.length & 0xff]))
+          sock.write(data)
+          sock.end()
+        })
+      }
+    })
+  }
 })
