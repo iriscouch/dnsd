@@ -194,16 +194,6 @@ function sections(msg) {
   }
 }
 
-//function section_label(name) {
-//  var labels = {question:'qd', answer:'an', authority:'ns', additional:'ar'}
-//    , label = labels[name]
-//
-//  if(label)
-//    return label
-//  else
-//    throw new Error('Invalid section name: ' + name)
-//}
-
 function mx(msg, data) {
   return [ data.readUInt16BE(0)
          , uncompress(msg, data.slice(2))
