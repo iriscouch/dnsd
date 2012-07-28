@@ -133,10 +133,27 @@ function Response (data, peer) {
   Object.defineProperty(self, 'peer', {'value':peer, 'enumerable':false, 'writable':true, 'configurable':true })
 }
 
-Response.prototype.end = function() {
+Response.prototype.end = function(value) {
   var self = this
-  var data = self.toBinary()
 
+  if(DEFS.help_responses) {
+    // Provide some shortcuts to make responding to requests easier.
+    if(self.question.length == 1 && self.question[0].class == 'IN' && self.question[0].type == 'A') {
+      // Handle typical name resolution.
+      if(self.answer.length == 0)
+        self.answer[0] = JSON.parse(JSON.stringify(self.question[0]))
+
+      if(typeof value == 'string' && !('data' in self.answer[0]))
+        self.answer[0].data = value
+    }
+
+    // Set missing TTLs
+    self.answer.forEach(fix_ttl)
+    self.authority.forEach(fix_ttl)
+    self.additional.forEach(fix_ttl)
+  }
+
+  var data = self.toBinary()
   if(self.peer.type == 'udp' && data.length > 512)
     return self.emit('error', 'UDP responses greater than 512 bytes not yet implemented')
 
@@ -159,6 +176,15 @@ Response.prototype.end = function() {
 
   else
     self.emit('error', new Error('Unknown peer type: ' + self.peer.type))
+}
+
+//
+// Utilities
+//
+
+function fix_ttl(record) {
+  if(! ('ttl' in record))
+    record.ttl = DEFS.ttl
 }
 
 }) // defaultable
