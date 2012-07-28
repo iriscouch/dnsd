@@ -20,3 +20,37 @@ test('Server API', function(t) {
 
   t.end()
 })
+
+test('Network server', function(t) {
+  var port = 5321
+
+  var server = API.createServer(function(req, res) {
+    console.log('Req: %j', req)
+    console.log('Res: %j', res)
+    res.end()
+  })
+
+  var events = {'listening':0, 'close':0, 'error':0}
+  server.on('listening', function() { events.listening += 1 })
+  server.on('close', function() { events.close += 1 })
+  server.on('error', function() { events.error += 1 })
+
+  server.listen(port, '127.0.0.1')
+  setTimeout(check_init, 150)
+  setTimeout(check_stop, 200)
+
+  function check_init() {
+    t.equal(events.listening, 1, 'Fired "listening" event')
+    t.equal(events.close, 0, 'No "close" events')
+    t.equal(events.error, 0, 'No "error" events')
+
+    server.close()
+  }
+
+  function check_stop() {
+    t.equal(events.close, 1, 'Fired "close" event')
+    t.equal(events.error, 0, 'Still no "error" events')
+
+    t.end()
+  }
+})
