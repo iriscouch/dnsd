@@ -2,6 +2,11 @@
 //
 // Server routines
 
+require('defaultable')(module,
+  { 'help_responses': true
+  , 'ttl'           : 3600
+  }, function(module, exports, DEFS, require) {
+
 var net = require('net')
 var util = require('util')
 var dgram = require('dgram')
@@ -155,3 +160,5 @@ Response.prototype.end = function() {
   else
     self.emit('error', new Error('Unknown peer type: ' + self.peer.type))
 }
+
+}) // defaultable
