@@ -117,6 +117,8 @@ function Response (data, peer) {
   var self = this
   Message.call(self, data)
 
+  self.type = 'response'
+
   self.question   = self.question   || []
   self.answer     = self.answer     || []
   self.authority  = self.authority  || []
