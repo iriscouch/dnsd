@@ -87,10 +87,23 @@ DNSMessage.prototype.parse = function(body) {
 }
 
 DNSMessage.prototype.toBinary = function() {
-  var self = this
+  // The encoder is picky, so make sure it gets a valid message.
+  var msg = JSON.parse(JSON.stringify(this))
+
+  // Make sure records promising data have data.
+  SECTIONS.forEach(function(section) {
+    if(section == 'question')
+      return
+
+    msg[section] = msg[section] || []
+    msg[section].forEach(function(record) {
+      if(record.class == 'IN' && record.type == 'A')
+        record.data = record.data || '0.0.0.0'
+    })
+  })
 
   var state = new encode.State
-  state.message(this)
+  state.message(msg)
   return state.toBinary()
 }
 
