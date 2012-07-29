@@ -83,6 +83,7 @@ Server.prototype.on_tcp_connection = function(connection) {
   var length = null
     , bufs = []
 
+  connection.type = 'tcp'
   connection.on('data', function(data) {
     bufs.push(data)
     var bytes_received = bufs.reduce(function(state, buf) { return state + buf.length }, 0)
@@ -96,7 +97,6 @@ Server.prototype.on_tcp_connection = function(connection) {
     if(length !== null && bytes_received == 2 + length) {
       // All of the data (plus the 2-byte length prefix) is received.
       var data = Buffer.concat(bufs)
-        //, connection = {'type':'tcp', 'socket':connection, 'end':function() { connection.end() }}
         , req = new Request(data, connection)
         , res = new Response(data, connection)
 
@@ -108,12 +108,17 @@ Server.prototype.on_tcp_connection = function(connection) {
 Server.prototype.on_udp = function(data, rinfo) {
   var self = this
 
-  rinfo.socket = this.udp
-  rinfo.type = 'udp'
-  rinfo.end  = function() {} // No need to "end" a datagram "connection"
+  // Provide something that feels like a net.Socket, which in turn feels like the http API.
+  var connection = { 'type'         : self.udp.type
+                   , 'remoteAddress': rinfo.address
+                   , 'remotePort'   : rinfo.port
+                   , 'send'         : function() { self.udp.send.apply(self.udp, arguments) }
+                   , 'destroy'      : function() {}
+                   , 'end'          : function() {}
+                   }
 
-  var req = new Request(data, rinfo)
-    , res = new Response(data, rinfo)
+  var req = new Request(data, connection)
+    , res = new Response(data, connection)
 
   self.emit('request', req, res)
 }
@@ -158,11 +163,11 @@ Response.prototype.end = function(value) {
   convenient.response(self, value)
 
   var data = self.toBinary()
-  if(self.connection.type == 'udp' && data.length > 512)
+  if(self.connection.type == 'udp4' && data.length > 512)
     return self.emit('error', 'UDP responses greater than 512 bytes not yet implemented')
 
-  else if(self.connection.type == 'udp')
-    self.connection.send(data, 0, data.length, self.connection.port, self.connection.address, function(er) {
+  else if(self.connection.type == 'udp4')
+    self.connection.send(data, 0, data.length, self.connection.remotePort, self.connection.remoteAddress, function(er) {
       if(er)
         self.emit('error', er)
     })
