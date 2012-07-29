@@ -48,6 +48,10 @@ function final_response(res, value) {
       if(soa_record)
         res.authority.push(soa_record)
     }
+
+    // If the value given is an IP address, make that the answer.
+    if(typeof value == 'string' && res.answer.length == 0)
+      res.answer.push({'class':'IN', 'type':'A', 'name':question.name, 'data':value})
   }
 
   // Set missing TTLs
