@@ -113,7 +113,10 @@ function record(msg, section_name, offset) {
   if(typeof offset != 'number' || isNaN(offset) || offset < 0)
     throw new Error('Offset must be a natural number')
 
-  var sects = sections(msg) // TODO: memoize this.
+  // Support msg being a previously-parsed sections object.
+  var sects = Buffer.isBuffer(msg)
+                ? sections(msg)
+                : msg
 
   var records = sects[section_name]
   if(!records)
