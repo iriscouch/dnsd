@@ -137,6 +137,21 @@ State.prototype.record = function(section_name, record) {
         // Flatten the data back out
         rdata = Array.prototype.slice.call(Buffer.concat([preference, host]))
         break
+      case 'IN SOA':
+        var mname   = self.encode(record.data.mname, 2) // Adust for rdata length
+          , rname   = self.encode(record.data.rname, 2 + mname.length)
+          , soa = [ mname
+                  , rname
+                  , buf32(record.data.serial)
+                  , buf32(record.data.refresh)
+                  , buf32(record.data.retry)
+                  , buf32(record.data.expire)
+                  , buf32(record.data.ttl)
+                  ]
+
+        // Flatten the data back out
+        rdata = Array.prototype.slice.call(Buffer.concat(soa))
+        break
       case 'IN NS':
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
@@ -206,4 +221,15 @@ State.prototype.encode = function(domain, position_offset) {
   }
 
   throw new Error('Too many iterations encoding record: ' + JSON.stringify(record))
+}
+
+
+//
+// Utilities
+//
+
+function buf32(value) {
+  var buf = new Buffer(4)
+  buf.writeUInt32BE(value, 0)
+  return buf
 }

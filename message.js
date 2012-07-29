@@ -90,15 +90,19 @@ DNSMessage.prototype.toBinary = function() {
   // The encoder is picky, so make sure it gets a valid message.
   var msg = JSON.parse(JSON.stringify(this))
 
-  // Make sure records promising data have data.
   SECTIONS.forEach(function(section) {
     if(section == 'question')
       return
 
     msg[section] = msg[section] || []
     msg[section].forEach(function(record) {
+      // Make sure records promising data have data.
       if(record.class == 'IN' && record.type == 'A')
         record.data = record.data || '0.0.0.0'
+
+      // Convert SOA email addresses back to the dotted notation.
+      if(record.class == 'IN' && record.type == 'SOA')
+        record.data.rname = record.data.rname.replace(/@/g, '.')
     })
   })
 
@@ -174,14 +178,30 @@ DNSRecord.prototype.parse = function(body, section_name, record_num) {
   self.ttl  = parse.record_ttl(body, section_name, record_num)
 
   var rdata = parse.record_data(body, section_name, record_num)
-  if(self.type == 'A' && rdata.length == 4)
-    self.data = inet_ntoa(rdata)
-  else if(~ ['NS', 'CNAME', 'SOA', 'PTR'].indexOf(self.type))
-    self.data = parse.uncompress(body, rdata)
-  else if(self.type == 'MX')
-    self.data = parse.mx(body, rdata)
-  else
-    self.data = Array.prototype.slice.call(rdata)
+  switch (self.class + ' ' + self.type) {
+    case 'IN A':
+      if(rdata.length != 4)
+        throw new Error('Bad IN A data: ' + JSON.stringify(self))
+      self.data = inet_ntoa(rdata)
+      break
+    case 'IN NS':
+    case 'IN CNAME':
+    case 'IN PTR':
+      self.data = parse.uncompress(body, rdata)
+      break
+    case 'IN MX':
+      self.data = parse.mx(body, rdata)
+      break
+    case 'IN SOA':
+      self.data = parse.soa(body, rdata)
+      self.data.rname = self.data.rname.replace(/\./, '@')
+      break
+    case 'NONE A':
+      self.data = []
+      break
+    default:
+      throw new Error('Unknown record '+self.class+' '+self.type+': ' + JSON.stringify(self))
+  }
 }
 
 DNSRecord.prototype.toString = function() {
