@@ -27,6 +27,7 @@ function Server (handler) {
   events.EventEmitter.call(self)
 
   self.log = console
+  self.zones = {}
 
   if(handler)
     self.on('request', handler)
@@ -56,6 +57,31 @@ function Server (handler) {
   })
 }
 
+Server.prototype.zone = function(zone, server, admin, serial, refresh, retry, expire, ttl) {
+  var self = this
+    , record = zone
+
+  if(typeof record != 'object')
+    record = { 'class': 'IN'
+             , 'type' : 'SOA'
+             , 'name' : zone
+             , 'data' : { 'mname': server
+                        , 'rname': admin
+                        , 'serial': serial
+                        , 'refresh': refresh
+                        , 'retry'  : retry
+                        , 'expire' : expire
+                        , 'ttl'    : ttl || 0
+                        }
+             }
+
+  if(record.data.serial == 'now')
+    record.data.serial = Math.floor(new Date().getTime() / 1000)
+
+  self.zones[record.name] = record
+  return self
+}
+
 Server.prototype.listen = function(port, ip) {
   var self = this
   self.port = port
@@ -63,6 +89,8 @@ Server.prototype.listen = function(port, ip) {
 
   self.udp.bind(port, ip)
   self.tcp.listen(port, ip)
+
+  return self
 }
 
 Server.prototype.close = function() {
