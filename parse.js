@@ -127,8 +127,7 @@ function record(msg, section_name, offset) {
 }
 
 function sections(msg) {
-  var state = 'question'
-    , position = 12 // First byte of the question section
+  var position = 12 // First byte of the first section
     , result = {'question':[], 'answer':[], 'authority':[], 'additional':[]}
     , need = { 'question'  : record_count(msg, 'question')
              , 'answer'    : record_count(msg, 'answer')
@@ -136,37 +135,18 @@ function sections(msg) {
              , 'additional': record_count(msg, 'additional')
              }
 
+  var states = ['question', 'answer', 'authority', 'additional', 'done']
+    , state = states.shift()
+
   while(true) {
-    switch (state) {
-      case 'question':
-        if(result.question.length < need.question)
-          add_record()
-        else
-          state = 'answer'
-        break
-      case 'answer':
-        if(result.answer.length < need.answer)
-          add_record()
-        else
-          state = 'authority'
-        break
-      case 'authority':
-        if(result.authority.length < need.authority)
-          add_record()
-        else
-          state = 'additional'
-        break
-      case 'additional':
-        if(result.additional.length < need.additional)
-          add_record()
-        else
-          state = 'done'
-        break
-      case 'done':
-        return result
-      default:
-        throw new Error('Unknown parsing state at position '+position+': '+JSON.stringify(state))
-    }
+    if(state == 'done')
+      return result
+    else if(result[state].length == need[state])
+      state = states.shift()
+    else if(!state)
+      throw new Error('Unknown parsing state at position '+position+': '+JSON.stringify(state))
+    else
+      add_record()
   }
 
   function add_record() {
