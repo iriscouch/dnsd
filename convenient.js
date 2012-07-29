@@ -54,11 +54,14 @@ function final_response(res, value) {
   res.answer.forEach(fix_ttl)
   res.authority.forEach(fix_ttl)
   res.additional.forEach(fix_ttl)
-}
 
+  function fix_ttl(record) {
+    var zone_minimum = DEFS.ttl
+    if(soa_record)
+      zone_minimum = soa_record.data.ttl
 
-function fix_ttl(record) {
-  record.ttl = Math.max(record.ttl || 0, DEFS.ttl)
+    record.ttl = Math.max(record.ttl || 0, zone_minimum)
+  }
 }
 
 
