@@ -155,10 +155,10 @@ test('Message records', function(t) {
 test('Encoding messages', function(t) {
   var files = [ 'dynamic-update', 'oreilly.com-query', 'oreilly.com-response', 'www.company.example-query'
               , 'www.company.example-response', 'www.microsoft.com-query', 'www.microsoft.com-response'
-              , 'iriscouch.com-query', 'iriscouch.com-response'
+              , 'iriscouch.com-query', 'iriscouch.com-response', 'foo.iriscouch.com-query', 'foo.iriscouch.com-response'
               ]
 
-  t.plan(27) // 3 for each file
+  t.plan(33) // 3 for each file
 
   files.forEach(function(file, i) {
     var original = packet(file)
