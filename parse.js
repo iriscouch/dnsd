@@ -22,6 +22,7 @@ module.exports = { 'id': id
                  , 'record_data' : record_data
                  , 'uncompress'  : uncompress
                  , 'mx': mx
+                 , 'soa': soa
                  }
 
 
@@ -198,6 +199,25 @@ function mx(msg, data) {
   return [ data.readUInt16BE(0)
          , uncompress(msg, data.slice(2))
          ]
+}
+
+function soa(msg, data) {
+  var result = domain_parts(msg, data)
+    , offset = result.length
+    , mname = result.parts.join('.')
+
+  result = domain_parts(msg, data.slice(offset))
+  var rname = result.parts.join('.')
+  offset += result.length
+
+  return { 'mname'  : mname
+         , 'rname'  : rname //.replace(/\./, '@')
+         , 'serial' : data.readUInt32BE(offset + 0)
+         , 'refresh': data.readUInt32BE(offset + 4)
+         , 'retry'  : data.readUInt32BE(offset + 8)
+         , 'expire' : data.readUInt32BE(offset + 12)
+         , 'ttl'    : data.readUInt32BE(offset + 16)
+         }
 }
 
 function uncompress(msg, offset) {
