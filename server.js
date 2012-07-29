@@ -3,8 +3,7 @@
 // Server routines
 
 require('defaultable')(module,
-  { 'help_responses': true
-  , 'ttl'           : 3600
+  {
   }, function(module, exports, DEFS, require) {
 
 var net = require('net')
@@ -13,6 +12,7 @@ var dgram = require('dgram')
 var events = require('events')
 
 var Message = require('./message')
+var convenient = require('./convenient')
 
 module.exports = createServer
 
@@ -124,11 +124,6 @@ function Response (data, peer) {
   var self = this
   Message.call(self, data)
 
-  self.type = 'response'
-
-  if(DEFS.help_responses)
-    self.authoritative = true
-
   self.question   = self.question   || []
   self.answer     = self.answer     || []
   self.authority  = self.authority  || []
@@ -141,22 +136,7 @@ function Response (data, peer) {
 Response.prototype.end = function(value) {
   var self = this
 
-  if(DEFS.help_responses) {
-    // Provide some shortcuts to make responding to requests easier.
-    if(self.question.length == 1 && self.question[0].class == 'IN' && self.question[0].type == 'A') {
-      // Handle typical name resolution.
-      if(self.answer.length == 0)
-        self.answer[0] = JSON.parse(JSON.stringify(self.question[0]))
-
-      if(typeof value == 'string' && !('data' in self.answer[0]))
-        self.answer[0].data = value
-    }
-
-    // Set missing TTLs
-    self.answer.forEach(fix_ttl)
-    self.authority.forEach(fix_ttl)
-    self.additional.forEach(fix_ttl)
-  }
+  convenient.response(self, value)
 
   var data = self.toBinary()
   if(self.peer.type == 'udp' && data.length > 512)
@@ -183,13 +163,5 @@ Response.prototype.end = function(value) {
     self.emit('error', new Error('Unknown peer type: ' + self.peer.type))
 }
 
-//
-// Utilities
-//
-
-function fix_ttl(record) {
-  if(! ('ttl' in record))
-    record.ttl = DEFS.ttl
-}
 
 }) // defaultable
