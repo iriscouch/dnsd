@@ -96,9 +96,9 @@ Server.prototype.on_tcp_connection = function(connection) {
     if(length !== null && bytes_received == 2 + length) {
       // All of the data (plus the 2-byte length prefix) is received.
       var data = Buffer.concat(bufs)
-        , peer = {'type':'tcp', 'socket':connection, 'end':function() { connection.end() }}
-        , req = new Message(data)
-        , res = new Response(data, peer)
+        //, connection = {'type':'tcp', 'socket':connection, 'end':function() { connection.end() }}
+        , req = new Request(data, connection)
+        , res = new Response(data, connection)
 
       self.emit('request', req, res)
     }
@@ -112,15 +112,24 @@ Server.prototype.on_udp = function(data, rinfo) {
   rinfo.type = 'udp'
   rinfo.end  = function() {} // No need to "end" a datagram "connection"
 
-  var req = new Message(data)
+  var req = new Request(data, rinfo)
     , res = new Response(data, rinfo)
 
   self.emit('request', req, res)
 }
 
 
+util.inherits(Request, Message)
+function Request (data, connection) {
+  var self = this
+  Message.call(self, data)
+
+  // Keep this property out of the enumeration, for cleaner JSON.stringify() and util.inspect().
+  Object.defineProperty(self, 'connection', {'value':connection, 'enumerable':false, 'writable':true, 'configurable':true })
+}
+
 util.inherits(Response, Message)
-function Response (data, peer) {
+function Response (data, connection) {
   var self = this
   Message.call(self, data)
 
@@ -129,8 +138,8 @@ function Response (data, peer) {
   self.authority  = self.authority  || []
   self.additional = self.additional || []
 
-  // Instead of `self.peer = peer` use this to keep it out of the enumeration.
-  Object.defineProperty(self, 'peer', {'value':peer, 'enumerable':false, 'writable':true, 'configurable':true })
+  // Keep this property out of the enumeration, for cleaner JSON.stringify() and util.inspect().
+  Object.defineProperty(self, 'connection', {'value':connection, 'enumerable':false, 'writable':true, 'configurable':true })
 }
 
 Response.prototype.end = function(value) {
@@ -139,28 +148,28 @@ Response.prototype.end = function(value) {
   convenient.response(self, value)
 
   var data = self.toBinary()
-  if(self.peer.type == 'udp' && data.length > 512)
+  if(self.connection.type == 'udp' && data.length > 512)
     return self.emit('error', 'UDP responses greater than 512 bytes not yet implemented')
 
-  else if(self.peer.type == 'udp')
-    self.peer.socket.send(data, 0, data.length, self.peer.port, self.peer.address, function(er) {
+  else if(self.connection.type == 'udp')
+    self.connection.send(data, 0, data.length, self.connection.port, self.connection.address, function(er) {
       if(er)
         self.emit('error', er)
     })
 
-  else if(self.peer.type == 'tcp') {
+  else if(self.connection.type == 'tcp') {
     // Add the data length prefix.
     var length = data.length
     data = Buffer.concat([ new Buffer([length >> 8, length & 255]), data ])
 
-    self.peer.socket.end(data, function(er) {
+    self.connection.end(data, function(er) {
       if(er)
         self.emit('error', er)
     })
   }
 
   else
-    self.emit('error', new Error('Unknown peer type: ' + self.peer.type))
+    self.emit('error', new Error('Unknown connection type: ' + self.connection.type))
 }
 
 
