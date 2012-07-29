@@ -21,6 +21,7 @@ module.exports = { 'id': id
                  , 'record_type' : record_type
                  , 'record_data' : record_data
                  , 'uncompress'  : uncompress
+                 , 'sections'    : sections
                  , 'mx': mx
                  , 'soa': soa
                  }
@@ -130,6 +131,10 @@ function record(msg, section_name, offset) {
 }
 
 function sections(msg) {
+  // Count the times this message has been parsed, for debugging and testing purposes.
+  if('__parsed' in msg)
+    msg.__parsed += 1
+
   var position = 12 // First byte of the first section
     , result = {'question':[], 'answer':[], 'authority':[], 'additional':[]}
     , need = { 'question'  : record_count(msg, 'question')
