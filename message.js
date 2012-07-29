@@ -183,7 +183,7 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
   self.ttl  = parse.record_ttl(sections, section_name, record_num)
 
   var rdata = parse.record_data(sections, section_name, record_num)
-  switch (self.class + ' ' + self.type) {
+  switch (self.kind()) {
     case 'IN A':
       if(rdata.length != 4)
         throw new Error('Bad IN A data: ' + JSON.stringify(self))
@@ -205,8 +205,12 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
       self.data = []
       break
     default:
-      throw new Error('Unknown record '+self.class+' '+self.type+': ' + JSON.stringify(self))
+      throw new Error('Unknown record '+self.kind()+': ' + JSON.stringify(self))
   }
+}
+
+DNSRecord.prototype.kind = function() {
+  return this.class + ' ' + this.type
 }
 
 DNSRecord.prototype.toString = function() {
