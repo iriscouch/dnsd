@@ -174,5 +174,5 @@ test('Encoding messages', function(t) {
 })
 
 function packet(name) {
-  return fs.readFileSync(__dirname + '/../test_data/' + name)
+  return fs.readFileSync(__dirname + '/../_test_data/' + name)
 }

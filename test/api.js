@@ -11,7 +11,7 @@ var util = require('util')
 
 var Message = require('../message')
 var API = require('../iris-named')
-var DATA = __dirname + '/../test_data'
+var DATA = __dirname + '/../_test_data'
 
 test('Message API', function(t) {
   t.type(Message, 'function', 'Message is a function (constructor)')

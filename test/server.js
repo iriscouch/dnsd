@@ -95,7 +95,7 @@ test('UDP queries', function(t) {
   function send_requests() {
     var type = 'tcp'
     Object.keys(reqs).forEach(function(domain) {
-      var data = fs.readFileSync(__dirname + '/../test_data/' + reqs[domain].name)
+      var data = fs.readFileSync(__dirname + '/../_test_data/' + reqs[domain].name)
 
       if(type == 'udp') {
         type = 'tcp'
