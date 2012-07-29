@@ -124,8 +124,17 @@ function Request (data, connection) {
   var self = this
   Message.call(self, data)
 
-  // Keep this property out of the enumeration, for cleaner JSON.stringify() and util.inspect().
-  Object.defineProperty(self, 'connection', {'value':connection, 'enumerable':false, 'writable':true, 'configurable':true })
+  self.connection = connection
+}
+
+Request.prototype.toJSON = function() {
+  var self = this
+  var obj = {}
+  Object.keys(self).forEach(function(key) {
+    if(key != 'connection')
+      obj[key] = self[key]
+  })
+  return obj
 }
 
 util.inherits(Response, Message)
@@ -138,9 +147,10 @@ function Response (data, connection) {
   self.authority  = self.authority  || []
   self.additional = self.additional || []
 
-  // Keep this property out of the enumeration, for cleaner JSON.stringify() and util.inspect().
-  Object.defineProperty(self, 'connection', {'value':connection, 'enumerable':false, 'writable':true, 'configurable':true })
+  self.connection = connection
 }
+
+Response.prototype.toJSON = Request.prototype.toJSON
 
 Response.prototype.end = function(value) {
   var self = this
