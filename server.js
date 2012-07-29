@@ -96,8 +96,9 @@ Server.prototype.on_tcp_connection = function(connection) {
     if(length !== null && bytes_received == 2 + length) {
       // All of the data (plus the 2-byte length prefix) is received.
       var data = Buffer.concat(bufs)
+        , peer = {'type':'tcp', 'socket':connection, 'end':function() { connection.end() }}
         , req = new Message(data)
-        , res = new Response(data, {'socket':connection, 'type':'tcp'})
+        , res = new Response(data, peer)
 
       self.emit('request', req, res)
     }
@@ -109,6 +110,7 @@ Server.prototype.on_udp = function(data, rinfo) {
 
   rinfo.socket = this.udp
   rinfo.type = 'udp'
+  rinfo.end  = function() {} // No need to "end" a datagram "connection"
 
   var req = new Message(data)
     , res = new Response(data, rinfo)
