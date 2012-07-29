@@ -43,16 +43,21 @@ function final_response(res, value) {
 
   // Add convenience for typical name resolution.
   if(questions.length == 1 && question.kind() == 'IN A') {
-    // If the server is authoritative for a zone, add an SOA record for the authoritative answer.
-    if(typeof value == 'undefined' && res.answer.length == 0 && res.authority.length == 0) {
-      if(soa_record)
-        res.authority.push(soa_record)
-    }
-
     // If the value given is an IP address, make that the answer.
     if(typeof value == 'string' && res.answer.length == 0)
       res.answer.push({'class':'IN', 'type':'A', 'name':question.name, 'data':value})
   }
+
+  // Convenience for SOA queries
+  else if(questions.length == 1 && question.kind() == 'IN SOA') {
+    // Respond with the SOA record for this zone if necessary and possible.
+    if(res.answer.length == 0 && soa_record && soa_record.name == question.name)
+      res.answer.push(soa_record)
+  }
+
+  // If the server is authoritative for a zone, add an SOA record if there is no good answer.
+  if(soa_record && questions.length == 1 && res.answer.length == 0 && res.authority.length == 0)
+    res.authority.push(soa_record)
 
   // Set missing TTLs
   res.answer.forEach(fix_ttl)
