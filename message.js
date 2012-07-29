@@ -145,7 +145,7 @@ DNSMessage.prototype.toString = function() {
 // * class - Network class ('IN', 'None' 'Unknown')
 // * ttl   - Time to live for the data in the record
 // * data  - The record data value, or null if not applicable
-function DNSRecord (body, section_name, record_num) {
+function DNSRecord (body, section_name, record_num, sections) {
   this.name = null
   this.type = null
   this.class = null
@@ -154,20 +154,23 @@ function DNSRecord (body, section_name, record_num) {
   //this.ttl  = null
   //this.data = null
 
-  this.parse(body, section_name, record_num)
+  // sections is a cached previously-parsed object from the body.
+  sections = sections || body
+
+  this.parse(body, section_name, record_num, sections)
 }
 
-DNSRecord.prototype.parse = function(body, section_name, record_num) {
+DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
   var self = this
 
-  self.name = parse.record_name(body, section_name, record_num)
+  self.name = parse.record_name(sections, section_name, record_num)
 
-  var clas = parse.record_class(body, section_name, record_num)
+  var clas = parse.record_class(sections, section_name, record_num)
   self.class = constants.class_to_label(clas)
   if(! self.class)
     throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown class: ' + type)
 
-  var type = parse.record_type(body, section_name, record_num)
+  var type = parse.record_type(sections, section_name, record_num)
   self.type = constants.type_to_label(type)
   if(! self.type)
     throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown type: ' + type)
@@ -175,9 +178,9 @@ DNSRecord.prototype.parse = function(body, section_name, record_num) {
   if(section_name == 'question')
     return
 
-  self.ttl  = parse.record_ttl(body, section_name, record_num)
+  self.ttl  = parse.record_ttl(sections, section_name, record_num)
 
-  var rdata = parse.record_data(body, section_name, record_num)
+  var rdata = parse.record_data(sections, section_name, record_num)
   switch (self.class + ' ' + self.type) {
     case 'IN A':
       if(rdata.length != 4)
