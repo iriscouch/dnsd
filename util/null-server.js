@@ -4,7 +4,7 @@ var named = require('../named')
 
 var port = +(process.argv[2] || 5321)
 named.createServer(function(req, res) {
-  console.log('%j', req)
+  console.log('%s:%s/%s %j', req.connection.remoteAddress, req.connection.remotePort, req.connection.type, req)
   req.connection.end()
 }).listen(port)
 
