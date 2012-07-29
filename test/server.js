@@ -58,7 +58,7 @@ test('Network server', function(t) {
   }
 })
 
-test('UDP queries', function(t) {
+test('Network queries', function(t) {
   var reqs = { 'ru.ac.th'                   : { id:36215, opcode:'update', recursion:false, name:'dynamic-update' }
              , 'oreilly.com'                : { id:45753, opcode:'query' , recursion:true , name:'oreilly.com-query' }
              , 'www.company.example'        : { id:62187, opcode:'query' , recursion:true , name:'www.company.example-query' }
