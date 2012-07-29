@@ -31,6 +31,15 @@ test('Parse invalid messages', function(t) {
   t.end()
 })
 
+test('Optimized parsing', function(t) {
+  var data = packet('oreilly.com-response')
+  data.__parsed = 0
+
+  API.parse(data)
+  t.equal(data.__parsed, 1, 'Parsing only runs once (after that, it is memoized)')
+  t.end()
+})
+
 test('Message attributes', function(t) {
   var msg
 
