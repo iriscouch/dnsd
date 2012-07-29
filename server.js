@@ -112,6 +112,8 @@ Server.prototype.on_tcp_connection = function(connection) {
     , bufs = []
 
   connection.type = 'tcp'
+  connection.server = self
+
   connection.on('data', function(data) {
     bufs.push(data)
     var bytes_received = bufs.reduce(function(state, buf) { return state + buf.length }, 0)
@@ -140,6 +142,7 @@ Server.prototype.on_udp = function(data, rinfo) {
   var connection = { 'type'         : self.udp.type
                    , 'remoteAddress': rinfo.address
                    , 'remotePort'   : rinfo.port
+                   , 'server'       : self
                    , 'send'         : function() { self.udp.send.apply(self.udp, arguments) }
                    , 'destroy'      : function() {}
                    , 'end'          : function() {}
@@ -181,6 +184,8 @@ function Response (data, connection) {
   self.additional = self.additional || []
 
   self.connection = connection
+
+  convenient.init_response(self)
 }
 
 Response.prototype.toJSON = Request.prototype.toJSON
@@ -188,7 +193,7 @@ Response.prototype.toJSON = Request.prototype.toJSON
 Response.prototype.end = function(value) {
   var self = this
 
-  convenient.response(self, value)
+  convenient.final_response(self, value)
 
   var data = self.toBinary()
   if(self.connection.type == 'udp4' && data.length > 512)

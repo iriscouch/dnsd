@@ -3,34 +3,51 @@
 // Convenience routines to make it easier to build a service
 
 require('defaultable')(module,
-  { 'help_responses': true
+  { 'convenient'    : true
   , 'ttl'           : 3600
   }, function(module, exports, DEFS, require) {
 
-if(! DEFS.help_responses) {
-  exports.request = function() {}
-  exports.response = function() {}
-} else {
-  exports.request = convenient_request
-  exports.response = convenient_response
-}
+function noop() {}
+
+module.exports = { 'init_response' : init_response
+                 , 'final_response': final_response
+                 }
+
+if(! DEFS.convenient)
+  Object.keys(module.exports).forEach(function(key) { module.exports[key] = noop })
 
 
-function convenient_request(req) {
-}
-
-function convenient_response(res, value) {
+function init_response(res) {
   res.type = 'response'
+}
+
+function final_response(res, value) {
+  var questions = res.question
+    , question = questions[0]
+
   res.authoritative = true
+  res.recursion_available = false
 
-  // Provide some shortcuts to make responding to requests easier.
-  if(res.question.length == 1 && res.question[0].class == 'IN' && res.question[0].type == 'A') {
-    // Handle typical name resolution.
-    if(res.answer.length == 0)
-      res.answer[0] = JSON.parse(JSON.stringify(res.question[0]))
+  // Find the zone of authority for this record, if any.
+  var names = question && question.name && question.name.split(/\./)
+    , zone, soa_record
 
-    if(typeof value == 'string' && !('data' in res.answer[0]))
-      res.answer[0].data = value
+  while(names && names.length) {
+    zone = names.join('.')
+    names.shift()
+
+    soa_record = res.connection.server.zones[zone]
+    if(soa_record)
+      break
+  }
+
+  // Add convenience for typical name resolution.
+  if(questions.length == 1 && question.kind() == 'IN A') {
+    // If the server is authoritative for a zone, add an SOA record for the authoritative answer.
+    if(typeof value == 'undefined' && res.answer.length == 0 && res.authority.length == 0) {
+      if(soa_record)
+        res.authority.push(soa_record)
+    }
   }
 
   // Set missing TTLs
@@ -41,8 +58,7 @@ function convenient_response(res, value) {
 
 
 function fix_ttl(record) {
-  if(! ('ttl' in record))
-    record.ttl = DEFS.ttl
+  record.ttl = Math.max(record.ttl || 0, DEFS.ttl)
 }
 
 
