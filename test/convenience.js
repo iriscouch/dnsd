@@ -63,6 +63,29 @@ test('Authoritative response', function(t) {
   t.end()
 })
 
+test('Common fields', function(t) {
+  var msg = {'answer':[{}], 'authority':[{}, {}], 'additional':[{}, {}, {}]}
+  convenient.final_response(msg)
+
+  t.equal(msg.answer[0].ttl, 3600, 'Automatically set answer TTL')
+  t.equal(msg.authority[0].ttl, 3600, 'Automatically set 1st authority TTL')
+  t.equal(msg.authority[1].ttl, 3600, 'Automatically set 2nd authority TTL')
+  t.equal(msg.additional[0].ttl, 3600, 'Automatically set 1st additional TTL')
+  t.equal(msg.additional[1].ttl, 3600, 'Automatically set 2nd additional TTL')
+  t.equal(msg.additional[2].ttl, 3600, 'Automatically set 3rd additional TTL')
+
+  t.equal(msg.answer[0].class, 'IN', 'Automatically set answer class')
+  t.equal(msg.authority[0].class, 'IN', 'Automatically set 1st authority class')
+  t.equal(msg.authority[1].class, 'IN', 'Automatically set 2nd authority class')
+  t.equal(msg.additional[0].class, 'IN', 'Automatically set 1st additional class')
+  t.equal(msg.additional[1].class, 'IN', 'Automatically set 2nd additional class')
+  t.equal(msg.additional[2].class, 'IN', 'Automatically set 3rd additional class')
+
+  console.error('msg: %j', msg)
+
+  t.end()
+})
+
 
 function dup(obj) {
   return JSON.parse(JSON.stringify(obj))
