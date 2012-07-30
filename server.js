@@ -67,16 +67,13 @@ Server.prototype.zone = function(zone, server, admin, serial, refresh, retry, ex
              , 'name' : zone
              , 'data' : { 'mname': server
                         , 'rname': admin
-                        , 'serial': serial
-                        , 'refresh': refresh
-                        , 'retry'  : retry
-                        , 'expire' : expire
-                        , 'ttl'    : ttl || 0
+                        , 'serial': convenient.serial(serial)
+                        , 'refresh': convenient.seconds(refresh)
+                        , 'retry'  : convenient.seconds(retry)
+                        , 'expire' : convenient.seconds(expire)
+                        , 'ttl'    : convenient.seconds(ttl || 0)
                         }
              }
-
-  if(record.data.serial == 'now')
-    record.data.serial = Math.floor(new Date().getTime() / 1000)
 
   self.zones[record.name] = record
   return self
