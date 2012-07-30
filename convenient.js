@@ -76,13 +76,15 @@ function final_response(res, value) {
     res.authority.push(soa_record)
 
   // Set missing TTLs
-  answers.forEach(fix_ttl)
-  authorities.forEach(fix_ttl)
-  additionals.forEach(fix_ttl)
+  answers.forEach(well_formed_record)
+  authorities.forEach(well_formed_record)
+  additionals.forEach(well_formed_record)
 
   return res
 
-  function fix_ttl(record) {
+  function well_formed_record(record) {
+    record.class = record.class || 'IN'
+
     var zone_minimum = DEFS.ttl
     if(soa_record)
       zone_minimum = soa_record.data.ttl
