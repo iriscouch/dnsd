@@ -53,10 +53,17 @@ function DNSMessage (body) {
 
   if(Buffer.isBuffer(body))
     this.parse(body)
-  else if(typeof body == 'object')
-    Object.keys(body).forEach(function(key) { self[key] = body[key] })
-  else
+  else if(typeof body != 'object')
     throw new Error('Must provide a buffer or object argument with message contents')
+  else {
+    Object.keys(body).forEach(function(key) { self[key] = body[key] })
+    SECTIONS.forEach(function(section) {
+      if(self[section])
+        self[section].forEach(function(record, i) {
+          self[section][i] = new DNSRecord(record)
+        })
+    })
+  }
 }
 
 DNSMessage.prototype.parse = function(body) {
@@ -151,7 +158,9 @@ DNSMessage.prototype.toString = function() {
 // * class - Network class ('IN', 'None' 'Unknown')
 // * ttl   - Time to live for the data in the record
 // * data  - The record data value, or null if not applicable
-function DNSRecord (body, section_name, record_num, sections) {
+function DNSRecord (body, section_name, record_num, sections_cache) {
+  var self = this
+
   this.name = null
   this.type = null
   this.class = null
@@ -160,10 +169,12 @@ function DNSRecord (body, section_name, record_num, sections) {
   //this.ttl  = null
   //this.data = null
 
-  // sections is a cached previously-parsed object from the body.
-  sections = sections || body
-
-  this.parse(body, section_name, record_num, sections)
+  if(Buffer.isBuffer(body))
+    this.parse(body, section_name, record_num, sections_cache || body)
+  else if(typeof body != 'object')
+    throw new Error('Must provide a buffer or object argument with message contents')
+  else
+    Object.keys(body).forEach(function(key) { self[key] = body[key] })
 }
 
 DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
