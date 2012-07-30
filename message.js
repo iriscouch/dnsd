@@ -38,8 +38,7 @@ var SECTIONS = ['question', 'answer', 'authority', 'additional']
 // * toJSON() - Return a JSON-friendly represenation of this message
 // * toBinary() - Return a buffer of the encoded message
 function DNSMessage (body) {
-  if(! Buffer.isBuffer(body))
-    throw new Error('Must provide a buffer argument with message data')
+  var self = this
 
   this.id = null
   this.type                = null
@@ -52,7 +51,12 @@ function DNSMessage (body) {
   this.authenticated       = null
   this.checking_disabled   = null
 
-  this.parse(body)
+  if(Buffer.isBuffer(body))
+    this.parse(body)
+  else if(typeof body == 'object')
+    Object.keys(body).forEach(function(key) { self[key] = body[key] })
+  else
+    throw new Error('Must provide a buffer or object argument with message contents')
 }
 
 DNSMessage.prototype.parse = function(body) {
