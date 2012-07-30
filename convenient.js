@@ -26,14 +26,17 @@ function init_response(res) {
 }
 
 function final_response(res, value) {
-  var questions = res.question
-    , question = questions[0]
+  var questions = res.question     || []
+    , answers   = res.answer       || []
+    , authorities = res.authority  || []
+    , additionals = res.additional || []
 
   res.authoritative = true
   res.recursion_available = false
 
   // Find the zone of authority for this record, if any.
-  var names = question && question.name && question.name.split(/\./)
+  var question = questions[0]
+    , names = question && question.name && question.name.split(/\./)
     , zone, soa_record
 
   while(names && names.length) {
@@ -48,25 +51,25 @@ function final_response(res, value) {
   // Add convenience for typical name resolution.
   if(questions.length == 1 && question.kind() == 'IN A') {
     // If the value given is an IP address, make that the answer.
-    if(typeof value == 'string' && res.answer.length == 0)
+    if(typeof value == 'string' && answers.length == 0)
       res.answer.push({'class':'IN', 'type':'A', 'name':question.name, 'data':value})
   }
 
   // Convenience for SOA queries
   else if(questions.length == 1 && question.kind() == 'IN SOA') {
     // Respond with the SOA record for this zone if necessary and possible.
-    if(res.answer.length == 0 && soa_record && soa_record.name == question.name)
+    if(answers.length == 0 && soa_record && soa_record.name == question.name)
       res.answer.push(soa_record)
   }
 
   // If the server is authoritative for a zone, add an SOA record if there is no good answer.
-  if(soa_record && questions.length == 1 && res.answer.length == 0 && res.authority.length == 0)
+  if(soa_record && questions.length == 1 && answers.length == 0 && authorities.length == 0)
     res.authority.push(soa_record)
 
   // Set missing TTLs
-  res.answer.forEach(fix_ttl)
-  res.authority.forEach(fix_ttl)
-  res.additional.forEach(fix_ttl)
+  answers.forEach(fix_ttl)
+  authorities.forEach(fix_ttl)
+  additionals.forEach(fix_ttl)
 
   function fix_ttl(record) {
     var zone_minimum = DEFS.ttl

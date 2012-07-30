@@ -23,6 +23,12 @@ test('Disabled convenience routines', function(t) {
   t.end()
 })
 
+test('Plain objects work in convenience functions', function(t) {
+  t.doesNotThrow(function() { convenient.init_response({}) }, 'Init a plain object, not a Response')
+  t.doesNotThrow(function() { convenient.final_response({}) }, 'Finalize a plaion object, not a Response')
+  t.end()
+})
+
 
 function dup(obj) {
   return JSON.parse(JSON.stringify(obj))
