@@ -39,7 +39,6 @@ function final_response(res, value) {
     , authorities = res.authority  || []
     , additionals = res.additional || []
 
-  res.authoritative = true
   res.recursion_available = false
 
   // Find the zone of authority for this record, if any.
@@ -55,6 +54,8 @@ function final_response(res, value) {
     if(soa_record)
       break
   }
+
+  res.authoritative = !! soa_record
 
   // Add convenience for typical name resolution.
   if(questions.length == 1 && question.kind() == 'IN A') {
