@@ -11,10 +11,14 @@ function noop() {}
 
 module.exports = { 'init_response' : init_response
                  , 'final_response': final_response
+                 , 'seconds': seconds
+                 , 'serial': serial
                  }
 
-if(! DEFS.convenient)
-  Object.keys(module.exports).forEach(function(key) { module.exports[key] = noop })
+if(! DEFS.convenient) {
+  module.exports.init_response = noop
+  module.exports.final_response = noop
+}
 
 
 function init_response(res) {
@@ -71,6 +75,38 @@ function final_response(res, value) {
 
     record.ttl = Math.max(record.ttl || 0, zone_minimum)
   }
+}
+
+
+function serial(value) {
+  if(value != 'now')
+    return value
+
+  // Otherwise, "now" is the current Unix time (no milliseconds).
+  var now = new Date
+  return Math.floor(now.getTime() / 1000)
+}
+
+// Convert various string values to seconds.
+function seconds(value) {
+  if(typeof value != 'string')
+    return value
+
+  var match
+  if(match = value.match(/^(\d+)s$/)) // seconds
+    return +match[1]
+
+  if(match = value.match(/^(\d+)m$/)) // minutes
+    return +match[1] * 60
+
+  if(match = value.match(/^(\d+)h$/)) // hours
+    return +match[1] * 60 * 60
+
+  if(match = value.match(/^(\d+)d$/)) // days
+    return +match[1] * 60 * 60 * 24
+
+  if(match = value.match(/^(\d+)w$/)) // weeks
+    return +match[1] * 60 * 60 * 24 * 7
 }
 
 
