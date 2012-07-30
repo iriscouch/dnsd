@@ -26,6 +26,14 @@ function init_response(res) {
 }
 
 function final_response(res, value) {
+  if(Array.isArray(value)) {
+    res.answer = (res.answer || []).concat(value)
+    value = undefined
+  } else if(typeof value == 'object') {
+    res = new res.constructor(value)
+    value = undefined
+  }
+
   var questions = res.question     || []
     , answers   = res.answer       || []
     , authorities = res.authority  || []
@@ -70,6 +78,8 @@ function final_response(res, value) {
   answers.forEach(fix_ttl)
   authorities.forEach(fix_ttl)
   additionals.forEach(fix_ttl)
+
+  return res
 
   function fix_ttl(record) {
     var zone_minimum = DEFS.ttl
