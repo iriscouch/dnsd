@@ -153,6 +153,7 @@ State.prototype.record = function(section_name, record) {
         rdata = Array.prototype.slice.call(Buffer.concat(soa))
         break
       case 'IN NS':
+      case 'IN CNAME':
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
       case 'NONE A':
