@@ -4,7 +4,9 @@
 
 var util = require('util')
 
-module.exports = { 'type_to_label'  : type_to_label
+module.exports = { 'type'           : swap_type
+                 , 'class'          : swap_class
+                 , 'type_to_label'  : type_to_label
                  , 'type_to_number' : type_to_number
                  , 'class_to_label' : class_to_label
                  , 'class_to_number': class_to_number
@@ -18,6 +20,14 @@ var TYPE_LABELS   = mk_type_labels()
   , CLASS_LABELS  = mk_class_labels()
   , TYPE_NUMBERS  = transpose(TYPE_LABELS)
   , CLASS_NUMBERS = transpose(CLASS_LABELS)
+
+function swap_type(obj) {
+  return (typeof obj == 'string') ? type_to_number(obj) : type_to_label(obj)
+}
+
+function swap_class(obj) {
+  return (typeof obj == 'string') ? class_to_number(obj) : class_to_label(obj)
+}
 
 function type_to_label(type) {
   if(isNaN(type) || typeof type != 'number' || type < 1 || type > 65535)
