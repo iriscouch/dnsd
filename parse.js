@@ -4,6 +4,8 @@
 
 var util = require('util')
 
+var constants = require('./constants')
+
 module.exports = { 'id': id
                  , 'qr': qr
                  , 'aa': aa
@@ -176,6 +178,22 @@ function sections(msg) {
       record.data = msg.slice(position, position + rdata_len)
 
       position += rdata_len
+
+      if(constants.type(record.type) === 'OPT') {
+        // EDNS
+        if(record.name !== '')
+          throw new Error('EDNS record option for non-root domain: ' + record.name)
+
+        record.udp_size = record.class
+        delete record.class
+
+        record.extended_rcode = (record.ttl >> 24)
+        record.edns_version   = (record.ttl >> 16) & 0xff
+        record.zero           = (record.ttl >>  8)
+        delete record.ttl
+
+        record.data = Array.prototype.slice.call(record.data)
+      }
     }
 
     result[state] = result[state] || []
