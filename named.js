@@ -3,9 +3,11 @@
 // The named package API
 
 var Message = require('./message')
+var createServer  = require('./server')
 
 module.exports = { 'parse': parse
                  , 'stringify': stringify
+                 , 'createServer': createServer
                  }
 
 function parse(packet) {
