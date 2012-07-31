@@ -9,7 +9,6 @@
 
 , "engines": { "node": ">= 0.8" }
 , "main": "./named.js"
-, "bin": "./cli.js"
 
 , "dependencies": { "optimist": "~0.3.4"
                   , "defaultable": "~0.7.2"
