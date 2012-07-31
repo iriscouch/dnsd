@@ -82,8 +82,6 @@ test('Common fields', function(t) {
   t.equal(msg.additional[1].class, 'IN', 'Automatically set 2nd additional class')
   t.equal(msg.additional[2].class, 'IN', 'Automatically set 3rd additional class')
 
-  console.error('msg: %j', msg)
-
   t.end()
 })
 
