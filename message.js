@@ -64,6 +64,15 @@ function DNSMessage (body) {
         })
     })
   }
+
+  // EDNS processing. For now, just remove those records.
+  SECTIONS.forEach(function(section) {
+    if(self[section]) {
+      self[section] = self[section].filter(function(record) { return ! record.edns })
+      if(self[section].length == 0)
+        delete self[section]
+    }
+  })
 }
 
 DNSMessage.prototype.parse = function(body) {
@@ -182,20 +191,29 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
 
   self.name = parse.record_name(sections, section_name, record_num)
 
-  var clas = parse.record_class(sections, section_name, record_num)
-  self.class = constants.class_to_label(clas)
-  if(! self.class)
-    throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown class: ' + type)
-
   var type = parse.record_type(sections, section_name, record_num)
   self.type = constants.type_to_label(type)
   if(! self.type)
     throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown type: ' + type)
 
-  if(section_name == 'question')
-    return
+  if(section_name != 'additional' || self.type != 'OPT' || self.name != '') {
+    // Normal record
+    var clas = parse.record_class(sections, section_name, record_num)
+    self.class = constants.class_to_label(clas)
+    if(! self.class)
+      throw new Error('Record '+record_num+' in section "'+section_name+'" has unknown class: ' + type)
 
-  self.ttl  = parse.record_ttl(sections, section_name, record_num)
+    if(section_name == 'question')
+      return
+    else
+      self.ttl  = parse.record_ttl(sections, section_name, record_num)
+  } else {
+    // EDNS record
+    self.edns = true
+    delete self.name
+    delete self.class
+    //self.edns = parse.record_edns(sections, section_name, record_num)
+  }
 
   var rdata = parse.record_data(sections, section_name, record_num)
   switch (self.kind()) {
@@ -219,13 +237,18 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
     case 'NONE A':
       self.data = []
       break
+    case 'EDNS':
+      self.data = rdata
+      break
     default:
       throw new Error('Unknown record '+self.kind()+': ' + JSON.stringify(self))
   }
 }
 
 DNSRecord.prototype.kind = function() {
-  return this.class + ' ' + this.type
+  return this.edns
+          ? 'EDNS'
+          : this.class + ' ' + this.type
 }
 
 DNSRecord.prototype.toString = function() {

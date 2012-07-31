@@ -12,10 +12,14 @@ var API = require('../named')
 test('Parse all known messages', function(t) {
   var files = [ 'dynamic-update', 'oreilly.com-query', 'oreilly.com-response', 'www.company.example-query'
               , 'www.company.example-response', 'www.microsoft.com-query', 'www.microsoft.com-response'
+              , 'edns-query'
               ]
 
   files.forEach(function(name) {
-    var msg = API.parse(packet(name))
+    var data = packet(name)
+      , msg
+
+    t.doesNotThrow(function() { msg = API.parse(data) }, 'No errors parsing ' + name)
 
     t.ok(msg, 'Parse packet: ' + name)
     t.ok(msg.id, 'Packet id: ' + name)

@@ -55,7 +55,8 @@ test('Authoritative response', function(t) {
   var out = convenient.final_response(msg)
   t.equal(out.authoritative, false, 'Final responses are not authoritative by default')
 
-  msg = new Message({'question':[{'class':'IN', 'type':'A', 'name':'foo.bar.example.com'}], 'authority':[]})
+  msg = new Message({'question':[{'class':'IN', 'type':'A', 'name':'foo.bar.example.com'}]})
+  msg.authority = []
   msg.connection = {'server':server}
   out = convenient.final_response(msg)
   t.equal(out.authoritative, true, 'Final responess are authoritative for queries in the zone')
