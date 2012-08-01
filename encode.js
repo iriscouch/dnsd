@@ -251,9 +251,7 @@ function flat(data) {
 }
 
 function flatten(state, element) {
-  return Buffer.isBuffer(element)
+  return (Buffer.isBuffer(element) || Array.isArray(element))
           ? state.concat(flat(element))
-          : Array.isArray(element)
-            ? state.concat(element)
-            : state.concat([element])
+          : state.concat([element])
 }
