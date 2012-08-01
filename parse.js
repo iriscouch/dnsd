@@ -25,6 +25,7 @@ module.exports = { 'id': id
                  , 'uncompress'  : uncompress
                  , 'sections'    : sections
                  , 'mx': mx
+                 , 'srv': srv
                  , 'soa': soa
                  }
 
@@ -205,6 +206,14 @@ function mx(msg, data) {
   return [ data.readUInt16BE(0)
          , uncompress(msg, data.slice(2))
          ]
+}
+
+function srv(msg, data) {
+  return { 'priority': data.readUInt16BE(0)
+         , 'weight'  : data.readUInt16BE(2)
+         , 'port'    : data.readUInt16BE(4)
+         , 'target'  : uncompress(msg, data.slice(6)) // Techncially compression is not allowed in RFC 2782.
+         }
 }
 
 function soa(msg, data) {

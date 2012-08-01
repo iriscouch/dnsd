@@ -156,6 +156,13 @@ State.prototype.record = function(section_name, record) {
       case 'IN CNAME':
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
+      case 'IN SRV':
+        rdata = flat([ buf16(record.data.priority)
+                     , buf16(record.data.weight)
+                     , buf16(record.data.port)
+                     , self.encode(record.data.target, 2 + 6, 'nocompress') // Offset for rdata length + priority, weight, and port.
+                     ])
+        break
       case 'NONE A':
         // I think this is no data, from RFC 2136 S. 2.4.3.
         rdata = []

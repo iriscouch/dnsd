@@ -230,6 +230,9 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
     case 'IN MX':
       self.data = parse.mx(body, rdata)
       break
+    case 'IN SRV':
+      self.data = parse.srv(body, rdata)
+      break
     case 'IN SOA':
       self.data = parse.soa(body, rdata)
       self.data.rname = self.data.rname.replace(/\./, '@')
