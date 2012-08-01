@@ -165,6 +165,29 @@ test('Message records', function(t) {
   t.end()
 })
 
+test('Convenient text records', function(t) {
+  t.plan(9)
+
+  var msg = API.parse(packet('txt-response'))
+  msg.answer.forEach(function(rec, i) {
+    t.equal(rec.type, 'TXT', 'Parse text record: '+i)
+    t.type(rec.data, 'string', 'Single text records become a string: '+i)
+  })
+
+  // Convert to an array and see if it persists correctly.
+  var data = msg.answer[0].data
+  msg.answer[0].data = [data, 'An extra string']
+
+  var body = msg.toBinary()
+    , msg2 = API.parse(body)
+
+  t.type(msg2.answer[1].data, 'string', 'Single text record still a string')
+  t.type(msg2.answer[0].data, 'Array' , 'Multiple text records are an array')
+  t.equal(msg2.answer[0].data.length, 2, 'All text data accounted for')
+
+  t.end()
+})
+
 test('Encoding messages', function(t) {
   var files = [ 'dynamic-update', 'oreilly.com-query', 'oreilly.com-response', 'www.company.example-query'
               , 'www.company.example-response', 'www.microsoft.com-query', 'www.microsoft.com-response'

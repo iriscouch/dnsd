@@ -118,6 +118,9 @@ DNSMessage.prototype.toBinary = function() {
 
     msg[section] = msg[section] || []
     msg[section].forEach(function(record) {
+      if(record.class != 'IN')
+        return
+
       // Make sure records promising data have data.
       if(record.class == 'IN' && record.type == 'A')
         record.data = record.data || '0.0.0.0'
@@ -125,6 +128,10 @@ DNSMessage.prototype.toBinary = function() {
       // Convert SOA email addresses back to the dotted notation.
       if(record.class == 'IN' && record.type == 'SOA')
         record.data.rname = record.data.rname.replace(/@/g, '.')
+
+      // Normalize TXT records.
+      if(record.type == 'TXT' && typeof record.data == 'string')
+        record.data = [record.data]
     })
   })
 
@@ -229,6 +236,10 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
       break
     case 'IN TXT':
       self.data = parse.txt(body, rdata)
+      if(self.data.length === 0)
+        self.data = ''
+      else if(self.data.length === 1)
+        self.data = self.data[0]
       break
     case 'IN MX':
       self.data = parse.mx(body, rdata)
