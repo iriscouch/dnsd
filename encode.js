@@ -234,3 +234,23 @@ function buf32(value) {
   buf.writeUInt32BE(value, 0)
   return buf
 }
+
+function buf16(value) {
+  var buf = new Buffer(2)
+  buf.writeUInt16BE(value, 0)
+  return buf
+}
+
+function flat(data) {
+  return data.reduce(flatten, [])
+
+  function flatten(state, element) {
+    if(Buffer.isBuffer(element))
+      element = Array.prototype.slice.call(element)
+
+    if(Array.isArray(element))
+      return state.concat(element)
+    else
+      throw new Error('Unknown data element: ' + JSON.stringify(element))
+  }
+}
