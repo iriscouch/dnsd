@@ -227,6 +227,9 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
     case 'IN PTR':
       self.data = parse.uncompress(body, rdata)
       break
+    case 'IN TXT':
+      self.data = parse.txt(body, rdata)
+      break
     case 'IN MX':
       self.data = parse.mx(body, rdata)
       break

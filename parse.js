@@ -27,6 +27,7 @@ module.exports = { 'id': id
                  , 'mx': mx
                  , 'srv': srv
                  , 'soa': soa
+                 , 'txt': txt
                  }
 
 
@@ -233,6 +234,17 @@ function soa(msg, data) {
          , 'expire' : data.readUInt32BE(offset + 12)
          , 'ttl'    : data.readUInt32BE(offset + 16)
          }
+}
+
+function txt(msg, data) {
+  var parts = []
+  while(data.length) {
+    var len = data.readUInt8(0)
+    parts.push(data.slice(1, 1+len).toString('ascii'))
+    data = data.slice(1+len)
+  }
+
+  return parts
 }
 
 function uncompress(msg, offset) {
