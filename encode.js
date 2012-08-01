@@ -128,40 +128,33 @@ State.prototype.record = function(section_name, record) {
         rdata = [ +match[1], +match[2], +match[3], +match[4] ]
         break
       case 'IN MX':
-        var preference = new Buffer(2)
-        preference.writeUInt16BE(record.data[0], 0)
-
         var host = record.data[1]
-        host = self.encode(host, 2 + 2) // Adjust for the rdata length + preference values.
-
-        // Flatten the data back out
-        rdata = Array.prototype.slice.call(Buffer.concat([preference, host]))
+        rdata = [ buf16(record.data[0])
+                , self.encode(host, 2 + 2) // Adjust for the rdata length + preference values.
+                ]
         break
       case 'IN SOA':
         var mname   = self.encode(record.data.mname, 2) // Adust for rdata length
           , rname   = self.encode(record.data.rname, 2 + mname.length)
-          , soa = [ mname
-                  , rname
-                  , buf32(record.data.serial)
-                  , buf32(record.data.refresh)
-                  , buf32(record.data.retry)
-                  , buf32(record.data.expire)
-                  , buf32(record.data.ttl)
-                  ]
-
-        // Flatten the data back out
-        rdata = Array.prototype.slice.call(Buffer.concat(soa))
+        rdata = [ mname
+                , rname
+                , buf32(record.data.serial)
+                , buf32(record.data.refresh)
+                , buf32(record.data.retry)
+                , buf32(record.data.expire)
+                , buf32(record.data.ttl)
+                ]
         break
       case 'IN NS':
       case 'IN CNAME':
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
       case 'IN SRV':
-        rdata = flat([ buf16(record.data.priority)
-                     , buf16(record.data.weight)
-                     , buf16(record.data.port)
-                     , self.encode(record.data.target, 2 + 6, 'nocompress') // Offset for rdata length + priority, weight, and port.
-                     ])
+        rdata = [ buf16(record.data.priority)
+                , buf16(record.data.weight)
+                , buf16(record.data.port)
+                , self.encode(record.data.target, 2 + 6, 'nocompress') // Offset for rdata length + priority, weight, and port.
+                ]
         break
       case 'NONE A':
         // I think this is no data, from RFC 2136 S. 2.4.3.
@@ -172,6 +165,7 @@ State.prototype.record = function(section_name, record) {
     }
 
     // Write the rdata length. (The position was already updated.)
+    rdata = flat(rdata)
     buf = new Buffer(2)
     buf.writeUInt16BE(rdata.length, 0)
     body.push(buf)
@@ -249,15 +243,17 @@ function buf16(value) {
 }
 
 function flat(data) {
-  return data.reduce(flatten, [])
+  return Buffer.isBuffer(data)
+          ? Array.prototype.slice.call(data)
+          : Array.isArray(data)
+            ? data.reduce(flatten, [])
+            : [data]
+}
 
-  function flatten(state, element) {
-    if(Buffer.isBuffer(element))
-      element = Array.prototype.slice.call(element)
-
-    if(Array.isArray(element))
-      return state.concat(element)
-    else
-      throw new Error('Unknown data element: ' + JSON.stringify(element))
-  }
+function flatten(state, element) {
+  return Buffer.isBuffer(element)
+          ? state.concat(flat(element))
+          : Array.isArray(element)
+            ? state.concat(element)
+            : state.concat([element])
 }
