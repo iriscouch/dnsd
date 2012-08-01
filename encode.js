@@ -179,7 +179,7 @@ State.prototype.record = function(section_name, record) {
   self[section_name].push(Buffer.concat(body))
 }
 
-State.prototype.encode = function(domain, position_offset) {
+State.prototype.encode = function(domain, position_offset, option) {
   var self = this
 
   domain = domain.replace(/\.$/, '') // Strip the trailing dot.
@@ -196,7 +196,7 @@ State.prototype.encode = function(domain, position_offset) {
       return Buffer.concat(body)
     }
 
-    else if(self.domains[domain]) {
+    else if(self.domains[domain] && option !== 'nocompress') {
       // Encode a pointer and be done.
       body.push(new Buffer([0xc0, self.domains[domain]]))
       return Buffer.concat(body)
