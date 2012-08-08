@@ -17,6 +17,6 @@ function parse(packet) {
 
 function stringify(message) {
   if(! (message instanceof Message))
-    throw new Error('Only parsed DNS messages are supported')
+    message = new Message(message)
   return message.toBinary()
 }
