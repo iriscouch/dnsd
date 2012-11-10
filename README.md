@@ -237,7 +237,9 @@ Follow uses [node-tap][tap]. If you clone this Git repository, tap is included.
 
 ## License
 
-**Copyright 2012 Iris Couch, all rights reserved.**
+Apache 2.0
+
+See the [Apache 2.0 license](named/blob/master/LICENSE).
 
 [tap]: https://github.com/isaacs/node-tap
 [def]: https://github.com/iriscouch/defaultable
