@@ -1,6 +1,5 @@
 { "name": "dnsd"
 , "description": "Dynamic authoritative name server for Iris services"
-, "private": true
 
 , "keywords": [ "dns", "bind", "dnsd", "iris" ]
 , "version": "0.9.0"
