@@ -1,18 +1,18 @@
-# named: DNS encoder, decoder, and server
+# dnsd: DNS encoder, decoder, and server
 
-*named* is a Node.js package for working with DNS. It converts binary DNS messages to and from convenient JavaScript objects; and it provides a server API, for running a custom name server.
+*dnsd* is a Node.js package for working with DNS. It converts binary DNS messages to and from convenient JavaScript objects; and it provides a server API, for running a custom name server.
 
-*named* is available as an npm module.
+*dnsd* is available as an npm module.
 
-    $ npm install named
+    $ npm install dnsd
 
 ## Example: Running a server
 
 This simple DNS server responds with an "A" (address) record of `1.2.3.4` for every request.
 
 ```javascript
-var named = require('named')
-named.createServer(function(req, res) {
+var dnsd = require('dnsd')
+dnsd.createServer(function(req, res) {
   res.end('1.2.3.4')
 }).listen(5353, '127.0.0.1')
 console.log('Server running at 127.0.0.1:5353')
@@ -44,9 +44,9 @@ Now test your server:
 This example logs all requests. For address (A) queries, it returns two records, with a random TTL, and the final octet of the IP address is the length of the hostname queried.
 
 ```javascript
-var named = require('named')
+var dnsd = require('dnsd')
 
-var server = named.createServer(handler)
+var server = dnsd.createServer(handler)
 server.zone('example.com', 'ns1.example.com', 'us@example.com', 'now', '2h', '30m', '2w', '10m')
       .listen(5353, '127.0.0.1')
 console.log('Server running at 127.0.0.1:5353')
@@ -124,11 +124,11 @@ Server output for these queries:
 
 ```javascript
 var fs = require('fs')
-var named = require('named')
+var dnsd = require('dnsd')
 
-var msg_file = require.resolve('named/_test_data/registry.npmjs.org-response')
+var msg_file = require.resolve('dnsd/_test_data/registry.npmjs.org-response')
   , msg_data = fs.readFileSync(msg_file)
-  , message = named.parse(msg_data)
+  , message = dnsd.parse(msg_data)
 
 console.dir(message)
 ```
@@ -168,15 +168,15 @@ Output
 ## Example: Encode a message
 
 ```javascript
-var named = require('named')
+var dnsd = require('dnsd')
 
 var questions = [ {name:'example.com', class:'IN', type:'TXT'} ]
   , message = {type:'query', id:123, opcode:'query', recursion_desired:true, question:questions}
-  , msg_data = named.binify(message)
+  , msg_data = dnsd.binify(message)
 
 console.log('Encoded = %j', Array.prototype.slice.apply(msg_data))
 
-message = named.parse(msg_data)
+message = dnsd.parse(msg_data)
 
 console.log('Round trip:')
 console.dir(message)
@@ -202,11 +202,11 @@ Round trip:
 
 ## Defaults
 
-`named` is [defaultable][def]. The option `convenient` (`true` by default) adds convenience code when running a server.  Convenience mode adds several features, mostly to build standards-compliant name servers.
+`dnsd` is [defaultable][def]. The option `convenient` (`true` by default) adds convenience code when running a server.  Convenience mode adds several features, mostly to build standards-compliant name servers.
 
 ```javascript
-var named_easy = require('named')
-var named_hard = named_easy.defaults({convenient: false})
+var dnsd_easy = require('dnsd')
+var dnsd_hard = dnsd_easy.defaults({convenient: false})
 ```
 
 First, your handler's response object already has `.type = "response"` set; then there are many helpers processing your response:
@@ -219,7 +219,7 @@ First, your handler's response object already has `.type = "response"` set; then
 * Responses to an `A` query with no answers will add the `SOA` record to the response.
 * If the response records are missing a TTL, use the one from the `.zone()` definition (the `SOA` record)
 
-Without convenience mode, named will simply send your response verbatim, as you define it (or throw an encoding error for missing or bad data).
+Without convenience mode, dnsd will simply send your response verbatim, as you define it (or throw an encoding error for missing or bad data).
 
 ## Tests
 
@@ -239,7 +239,7 @@ Follow uses [node-tap][tap]. If you clone this Git repository, tap is included.
 
 Apache 2.0
 
-See the [Apache 2.0 license](named/blob/master/LICENSE).
+See the [Apache 2.0 license](dnsd/blob/master/LICENSE).
 
 [tap]: https://github.com/isaacs/node-tap
 [def]: https://github.com/iriscouch/defaultable

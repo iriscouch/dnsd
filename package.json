@@ -1,11 +1,11 @@
-{ "name": "named"
+{ "name": "dnsd"
 , "description": "Dynamic authoritative name server for Iris services"
 , "private": true
 
-, "keywords": [ "dns", "bind", "named", "iris" ]
+, "keywords": [ "dns", "bind", "dnsd", "iris" ]
 , "version": "0.1.0"
 , "author": "Jason Smith <jhs@iriscouch.com> (http://www.iriscouch.com)"
-, "repository": { "type":"git", "url":"https://github.com/iriscouch/named" }
+, "repository": { "type":"git", "url":"https://github.com/iriscouch/dnsd" }
 
 , "engines": { "node": ">= 0.8" }
 , "main": "./named.js"

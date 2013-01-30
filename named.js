@@ -1,6 +1,6 @@
 // Copyright 2012 Iris Couch, all rights reserved.
 //
-// The named package API
+// The dnsd package API
 
 var Message = require('./message')
 var createServer  = require('./server')
