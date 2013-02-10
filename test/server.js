@@ -21,7 +21,7 @@ test('Server API', function(t) {
   var server
   t.doesNotThrow(function() { server = API.createServer(function(){}) }, 'Create a server')
   t.type(server.listen, 'function', 'Server has a .listen() method')
-  t.equal(server.listen.length, 2, 'listen() method takes two parameters')
+  t.equal(server.listen.length, 3, 'listen() method takes three parameters')
 
   t.end()
 })
@@ -34,15 +34,18 @@ test('Network server', function(t) {
   })
 
   var events = {'listening':0, 'close':0, 'error':0}
+  var listenCallback = false
+
   server.on('listening', function() { events.listening += 1 })
   server.on('close', function() { events.close += 1 })
   server.on('error', function() { events.error += 1 })
 
-  server.listen(PORT, '127.0.0.1')
+  server.listen(PORT, '127.0.0.1', function() { listenCallback = true })
   setTimeout(check_init, 150)
   setTimeout(check_stop, 200)
 
   function check_init() {
+    t.ok(listenCallback, '"listen" callback called')
     t.equal(events.listening, 1, 'Fired "listening" event')
     t.equal(events.close, 0, 'No "close" events')
     t.equal(events.error, 0, 'No "error" events')

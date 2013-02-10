@@ -79,10 +79,13 @@ Server.prototype.zone = function(zone, server, admin, serial, refresh, retry, ex
   return self
 }
 
-Server.prototype.listen = function(port, ip) {
+Server.prototype.listen = function(port, ip, callback) {
   var self = this
   self.port = port
   self.ip   = ip || '0.0.0.0'
+
+  if(typeof callback === 'function')
+    self.on('listening', callback)
 
   self.udp.bind(port, ip)
   self.tcp.listen(port, ip)
