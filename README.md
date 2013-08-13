@@ -120,6 +120,45 @@ Server output for these queries:
     127.0.0.1:34427/udp4 {"id":30176,"type":"request","responseCode":0,"opcode":"query","authoritative":false,"truncated":false,"recursion_desired":true,"recursion_available":false,"authenticated":false,"checking_disabled":false,"question":[{"name":"example.com","type":"SOA","class":"IN"}]}
     127.0.0.1:59596/udp4 {"id":19419,"type":"request","responseCode":0,"opcode":"query","authoritative":false,"truncated":false,"recursion_desired":true,"recursion_available":false,"authenticated":false,"checking_disabled":false,"question":[{"name":"example.com","type":"A","class":"IN"}]}
 
+
+## Example: MX Records
+This is an example if you need to route your mail server with an MX record.
+
+```javascript
+// Example MX response with dnsd
+//
+// To test:
+// 1. Run this program
+// 2. dig @localhost -p 5353 example.com mx
+ 
+var dnsd = require('dnsd')
+ 
+var server = dnsd.createServer(handler)
+server.zone('example.com', 'ns1.example.com', 'us@example.com', 'now', '2h', '30m', '2w', '10m')
+server.listen(5353, '127.0.0.1')
+console.log('Listening at 127.0.0.1:5353')
+ 
+function handler(req, res) {
+  var question = res.question && res.question[0]
+ 
+  if(question.type != 'MX')
+    return res.end()
+ 
+  console.log('MX lookup for domain: %s', question.name)
+  res.answer.push({'name':question.name, 'type':'MX', 'data':[10, 'mail.example.com']})
+  res.answer.push({'name':question.name, 'type':'MX', 'data':[20, 'mail.backupexample.com']})
+  
+  return res.end()
+}
+```
+
+The MX data attribute needs to be an Array to work properly, the first value is the priority, the second is the server.
+This server name must be a domain string and not an IP address. Make sure you have an A record or CNAME setup for this.
+
+See http://support.google.com/a/bin/answer.py?hl=en&answer=140034 for more info on MX records and configuration.
+
+
+
 ## Example: Parse a message
 
 ```javascript
