@@ -30,7 +30,7 @@ function final_response(res, value) {
     res.answer = (res.answer || []).concat(value)
     value = undefined
   } else if(typeof value == 'object') {
-    res = new res.constructor(value)
+    res = new res.constructor(value, value.connection || res.connection)
     value = undefined
   }
 
