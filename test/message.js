@@ -193,9 +193,10 @@ test('Encoding messages', function(t) {
               , 'www.company.example-response', 'www.microsoft.com-query', 'www.microsoft.com-response'
               , 'iriscouch.com-query', 'iriscouch.com-response', 'foo.iriscouch.com-query', 'foo.iriscouch.com-response'
               , 'registry.npmjs.org-response', 'srv-query', 'srv-response', 'txt-query', 'txt-response'
+              , 'ptr-query', 'ptr-response'
               ]
 
-  t.plan(48) // 3 for each file
+  t.plan(3 * 18) // 3 for each file
 
   files.forEach(function(file, i) {
     var original = packet(file)

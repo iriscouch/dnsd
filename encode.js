@@ -146,6 +146,7 @@ State.prototype.record = function(section_name, record) {
                 ]
         break
       case 'IN NS':
+      case 'IN PTR':
       case 'IN CNAME':
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
