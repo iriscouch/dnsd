@@ -229,6 +229,11 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
         throw new Error('Bad IN A data: ' + JSON.stringify(self))
       self.data = inet_ntoa(rdata)
       break
+    case 'IN AAAA':
+      if(rdata.length != 16)
+        throw new Error('Bad IN AAAA data: ' + JSON.stringify(self))
+      self.data = inet_ntoa6(rdata)
+      break
     case 'IN NS':
     case 'IN CNAME':
     case 'IN PTR':
@@ -299,4 +304,11 @@ function width(str_len, str) {
 
 function inet_ntoa(buf) {
   return buf[0] + '.' + buf[1] + '.' + buf[2] + '.' + buf[3]
+}
+
+function inet_ntoa6(buf) {
+  var result = []
+  for(var i = 0; i < 16; i += 2)
+    result.push(buf.slice(i, i+2).toString('hex'))
+  return result.join(':')
 }

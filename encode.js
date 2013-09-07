@@ -127,6 +127,12 @@ State.prototype.record = function(section_name, record) {
           throw new Error('Bad '+record.type+' record data: ' + JSON.stringify(record))
         rdata = [ +match[1], +match[2], +match[3], +match[4] ]
         break
+      case 'IN AAAA':
+        rdata = (record.data || '').split(/:/)
+        if(rdata.length != 8)
+          throw new Error('Bad '+record.type+' record data: ' + JSON.stringify(record))
+        rdata = rdata.map(pair_to_buf)
+        break
       case 'IN MX':
         var host = record.data[1]
         rdata = [ buf16(record.data[0])
@@ -261,4 +267,11 @@ function flatten(state, element) {
   return (Buffer.isBuffer(element) || Array.isArray(element))
           ? state.concat(flat(element))
           : state.concat([element])
+}
+
+function pair_to_buf(pair) {
+  // Convert a string of two hex bytes, e.g. "89ab" to a buffer.
+  if(! pair.match(/^[0-9a-fA-F]{4}$/))
+    throw new Error('Bad '+record.type+' record data: ' + JSON.stringify(record))
+  return new Buffer(pair, 'hex')
 }
