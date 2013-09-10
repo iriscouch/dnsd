@@ -2,7 +2,7 @@
 , "description": "Dynamic authoritative name server for Iris services"
 
 , "keywords": [ "dns", "bind", "dnsd", "iris" ]
-, "version": "0.9.3"
+, "version": "0.9.4"
 , "author": "Jason Smith <jhs@iriscouch.com> (http://www.iriscouch.com)"
 , "repository": { "type":"git", "url":"https://github.com/iriscouch/dnsd" }
 
