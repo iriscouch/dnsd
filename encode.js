@@ -193,9 +193,10 @@ State.prototype.record = function(section_name, record) {
   self[section_name].push(Buffer.concat(body))
 }
 
-State.prototype.encode = function(domain, position_offset, option) {
+State.prototype.encode = function(full_domain, position_offset, option) {
   var self = this
 
+  var domain = full_domain
   domain = domain.replace(/\.$/, '') // Strip the trailing dot.
   position = self.position + (position_offset || 0)
 
@@ -235,7 +236,7 @@ State.prototype.encode = function(domain, position_offset, option) {
     }
   }
 
-  throw new Error('Too many iterations encoding record: ' + JSON.stringify(record))
+  throw new Error('Too many iterations encoding domain: ' + full_domain)
 }
 
 
