@@ -204,7 +204,9 @@ State.prototype.encode = function(full_domain, position_offset, option) {
     , bytes
 
   var i = 0
-  while(++i < 20) {
+  var max_iterations = 40 // Enough for 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa
+
+  while(++i < max_iterations) {
     if(domain == '') {
       // Encode the root domain and be done.
       body.push(new Buffer([0]))
