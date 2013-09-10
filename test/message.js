@@ -193,7 +193,7 @@ test('Encoding messages', function(t) {
               , 'www.company.example-response', 'www.microsoft.com-query', 'www.microsoft.com-response'
               , 'iriscouch.com-query', 'iriscouch.com-response', 'foo.iriscouch.com-query', 'foo.iriscouch.com-response'
               , 'registry.npmjs.org-response', 'srv-query', 'srv-response', 'txt-query', 'txt-response'
-              , 'ptr-query', 'ptr-response', 'aaaa-query', 'aaaa-response', 'ipv6_ptr-query'
+              , 'ptr-query', 'ptr-response', 'aaaa-query', 'aaaa-response', 'ipv6_ptr-query', 'ds-query', 'ds-response'
               ]
 
   t.plan(3 * files.length) // 3 for each file

@@ -256,6 +256,13 @@ DNSRecord.prototype.parse = function(body, section_name, record_num, sections) {
       self.data = parse.soa(body, rdata)
       self.data.rname = self.data.rname.replace(/\./, '@')
       break
+    case 'IN DS':
+      self.data = { 'key_tag'    : rdata[0] << 8 | rdata[1]
+                  , 'algorithm'  : rdata[2]
+                  , 'digest_type': rdata[3]
+                  , 'digest'     : rdata.slice(4).toJSON() // Convert to a list of numbers.
+                  }
+      break
     case 'NONE A':
       self.data = []
       break

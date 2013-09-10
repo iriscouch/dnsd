@@ -169,6 +169,13 @@ State.prototype.record = function(section_name, record) {
                 , self.encode(record.data.target, 2 + 6, 'nocompress') // Offset for rdata length + priority, weight, and port.
                 ]
         break
+      case 'IN DS':
+        rdata = [ buf16(record.data.key_tag)
+                , new Buffer([record.data.algorithm])
+                , new Buffer([record.data.digest_type])
+                , new Buffer(record.data.digest)
+                ]
+        break
       case 'NONE A':
         // I think this is no data, from RFC 2136 S. 2.4.3.
         rdata = []
