@@ -105,6 +105,16 @@ Server.prototype.close = function() {
     })
 }
 
+Server.prototype.unref = function() {
+  this.udp.unref()
+  this.tcp.unref()
+}
+
+Server.prototype.ref = function() {
+  this.udp.ref()
+  this.tcp.ref()
+}
+
 Server.prototype.on_tcp_connection = function(connection) {
   var self = this
 
