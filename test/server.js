@@ -23,6 +23,12 @@ test('Server API', function(t) {
   t.type(server.listen, 'function', 'Server has a .listen() method')
   t.equal(server.listen.length, 3, 'listen() method takes three parameters')
 
+  t.type(server.unref, 'function', 'Server has a .unref() method')
+  t.equal(server.unref.length, 0, 'unref() method takes zero parameters')
+
+  t.type(server.ref, 'function', 'Server has a .ref() method')
+  t.equal(server.ref.length, 0, 'ref() method takes zero parameters')
+
   t.end()
 })
 
