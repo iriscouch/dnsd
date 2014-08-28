@@ -81,6 +81,12 @@ Server.prototype.zone = function(zone, server, admin, serial, refresh, retry, ex
 
 Server.prototype.listen = function(port, ip, callback) {
   var self = this
+
+  if(typeof ip === 'function') {
+    callback = ip
+    ip = null
+  }
+
   self.port = port
   self.ip   = ip || '0.0.0.0'
 
