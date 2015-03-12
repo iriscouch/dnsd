@@ -5,6 +5,7 @@
 , "version": "0.9.5"
 , "author": "Jason Smith <jhs@iriscouch.com> (http://www.iriscouch.com)"
 , "repository": { "type":"git", "url":"https://github.com/iriscouch/dnsd" }
+, "licenses": [{ "type": "Apache 2.0", "url": "https://github.com/iriscouch/dnsd/blob/master/LICENSE" }]
 
 , "engines": { "node": ">= 0.8" }
 , "main": "./named.js"
@@ -12,7 +13,6 @@
 , "dependencies": { "optimist": "~0.3.4"
                   , "defaultable": "~0.7.2"
                   }
-
 , "devDependencies": { "tap": "~0.2.5"
                      }
 , "scripts": { "test": "tap test/*.js" }
