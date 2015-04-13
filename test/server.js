@@ -122,3 +122,72 @@ test('Network queries', function(t) {
     })
   }
 })
+
+test('Invalid queries', function(t) {
+  var reqs = { 'short-query'                  : { message:'Error processing request', error: 'RangeError: Trying to access beyond buffer length' }
+             , 'garbage'                      : { message:'Error processing request', error: 'RangeError: Trying to access beyond buffer length' }
+             }
+
+  var i = 0
+  var server = API.createServer(on_req)
+  server.on('error', on_error)
+  server.listen(PORT, '127.0.0.1')
+  server.on('listening', send_requests)
+
+  function on_error(message, err, info) {
+    var req;
+    t.type(message, 'string', 'Got error message')
+    t.type(err, 'Error', 'Got Error object')
+    t.type(info, 'Object', 'Got connection info object')
+    t.type(info.type, 'string', 'Found connection type')
+    t.type(info.remoteAddress, 'string', 'Found connection remote address')
+    t.type(info.remotePort, 'number', 'Found connection remote port')
+
+    Object.keys(reqs).forEach(function(name) {
+      if (/tcp/.test(info.type) && info.remotePort == reqs[name].tcpAddr.port) {
+        req = reqs[name];
+      }
+
+      if (/udp/.test(info.type) && info.remotePort === reqs[name].udpAddr.port) {
+        req = reqs[name];
+      }
+    })
+
+    t.ok(req != undefined, 'Found matching request')
+    t.equal(message, req.message)
+    t.equal(err.toString(), req.error)
+
+    i += 1
+    if(i == Object.keys(reqs).length * 2) {
+      server.close()
+      t.end()
+    }
+  }
+
+  function on_req(req, res) {
+    t.notOk(true, 'Request handler should not be called');
+  }
+
+  function send_requests() {
+    Object.keys(reqs).forEach(function(name) {
+      var data = fs.readFileSync(__dirname + '/../_test_data/' + name)
+
+      var udp = dgram.createSocket('udp4')
+        udp.bind(function() {
+        reqs[name].udpAddr = udp.address();
+
+        udp.send(data, 0, data.length, PORT, '127.0.0.1', function() {
+          udp.close()
+        })
+
+      });
+
+      var tcp = net.connect({'port':PORT}, function(er) {
+        reqs[name].tcpAddr = tcp.address();
+        tcp.write(new Buffer([data.length >> 8, data.length & 0xff]))
+        tcp.write(data)
+        tcp.end()
+      })
+    })
+  }
+})
