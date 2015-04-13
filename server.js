@@ -142,11 +142,15 @@ Server.prototype.on_tcp_connection = function(connection) {
 
     if(length !== null && bytes_received == 2 + length) {
       // All of the data (plus the 2-byte length prefix) is received.
-      var data = Buffer.concat(bufs)
-        , req = new Request(data, connection)
-        , res = new Response(data, connection)
+      try {
+        var data = Buffer.concat(bufs)
+          , req = new Request(data, connection)
+          , res = new Response(data, connection)
 
-      self.emit('request', req, res)
+        self.emit('request', req, res)
+      } catch(err) {
+        self.emit('error', 'Error processing request', err, connection)
+      }
     }
   })
 }
@@ -164,12 +168,15 @@ Server.prototype.on_udp = function(data, rinfo) {
                    , 'end'          : function() {}
                    }
 
-  var req = new Request(data, connection)
-    , res = new Response(data, connection)
+  try {
+    var req = new Request(data, connection)
+      , res = new Response(data, connection)
 
-  self.emit('request', req, res)
+    self.emit('request', req, res)
+  } catch (err) {
+    self.emit('error', 'Error processing request', err, connection)
+  }
 }
-
 
 util.inherits(Request, Message)
 function Request (data, connection) {
