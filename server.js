@@ -75,7 +75,7 @@ Server.prototype.zone = function(zone, server, admin, serial, refresh, retry, ex
                         }
              }
 
-  self.zones[record.name] = record
+  self.zones[record.name.toLowerCase()] = record
   return self
 }
 
