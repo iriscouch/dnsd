@@ -47,7 +47,7 @@ function final_response(res, value) {
     , zone, soa_record
 
   while(names && names.length) {
-    zone = names.join('.')
+    zone = names.join('.').toLowerCase()
     names.shift()
 
     soa_record = res.connection.server.zones[zone]
