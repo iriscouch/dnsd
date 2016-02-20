@@ -129,7 +129,7 @@ State.prototype.record = function(section_name, record) {
         break
       case 'IN AAAA':
         rdata = (record.data || '').split(/:/)
-        if(rdata.length != 8)
+        if(rdata.length < 2)
           throw new Error('Bad '+record.type+' record data: ' + JSON.stringify(record))
         rdata = rdata.map(pair_to_buf)
         break
