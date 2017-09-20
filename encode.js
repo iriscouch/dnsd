@@ -158,15 +158,7 @@ State.prototype.record = function(section_name, record) {
         break
       case 'IN CAA':
         buf = new Buffer(2)
-        switch (record.data.type) {
-          case 'issue':
-          case 'iodef':
-            buf.writeUInt16BE(5)
-            break
-          case 'issuewild':
-            buf.writeUInt16BE(9)
-            break
-        }
+        buf.writeUInt16BE(record.data.type.length)
         rdata = [buf, new Buffer(record.data.type + record.data.value)]
         break
       case 'IN TXT':
