@@ -157,9 +157,11 @@ State.prototype.record = function(section_name, record) {
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
       case 'IN CAA':
-        buf = new Buffer(2)
-        buf.writeUInt16BE(record.data.type.length)
-        rdata = [buf, new Buffer(record.data.type + record.data.value)]
+        rdata = [ new Buffer([record.data.flags])
+                , new Buffer([record.data.type.length])
+                , new Buffer(record.data.type)
+                , new Buffer(record.data.value)
+                ]
         break
       case 'IN TXT':
         rdata = record.data.map(function(part) {
