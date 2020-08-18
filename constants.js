@@ -170,7 +170,13 @@ function mk_type_labels() {
     , 57: 'RKEY'
     , 58: 'TALINK'
     , 59: 'CDS'
-    // 60 - 98 unassigned
+    , 60: 'CDNSKEY'
+    , 61: 'OPENPGPKEY'
+    , 62: 'CSYNC'
+    , 63: 'ZONEMD'
+    , 64: 'SVCB'
+    , 65: 'HTTPS'
+    // 66 - 98 unassigned
     , 99: 'SPF'
     , 100: 'UINFO'
     , 101: 'UID'
@@ -198,7 +204,7 @@ function mk_type_labels() {
     , 65535: 'Reserved'
     }
 
-  var unassigned = [ [53,54], [60,98], [108,248], [258,32767], [32770,65279] ]
+  var unassigned = [ [53,54], [66,98], [108,248], [258,32767], [32770,65279] ]
   unassigned.forEach(function(pair) {
     var start = pair[0], stop = pair[1]
     for(var i = start; i <= stop; i++)
