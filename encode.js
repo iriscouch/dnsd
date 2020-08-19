@@ -156,6 +156,13 @@ State.prototype.record = function(section_name, record) {
       case 'IN CNAME':
         rdata = self.encode(record.data, 2) // Adjust for the rdata length
         break
+      case 'IN CAA':
+        rdata = [ new Buffer([record.data.flags])
+                , new Buffer([record.data.type.length])
+                , new Buffer(record.data.type)
+                , new Buffer(record.data.value)
+                ]
+        break
       case 'IN TXT':
         rdata = record.data.map(function(part) {
           part = new Buffer(part)
