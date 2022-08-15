@@ -130,6 +130,7 @@ Server.prototype.on_tcp_connection = function(connection) {
   connection.type = 'tcp'
   connection.server = self
 
+  connection.on('error', self.emit.bind(self, 'error'))
   connection.on('data', function(data) {
     bufs.push(data)
     var bytes_received = bufs.reduce(function(state, buf) { return state + buf.length }, 0)
@@ -146,6 +147,9 @@ Server.prototype.on_tcp_connection = function(connection) {
         var data = Buffer.concat(bufs)
           , req = new Request(data, connection)
           , res = new Response(data, connection)
+
+        req.on('error', self.emit.bind(self, 'error'))
+        res.on('error', self.emit.bind(self, 'error'))
 
         self.emit('request', req, res)
       } catch (err) {
@@ -171,6 +175,9 @@ Server.prototype.on_udp = function(data, rinfo) {
   try {
     var req = new Request(data, connection)
       , res = new Response(data, connection)
+
+    req.on('error', self.emit.bind(self, 'error'))
+    res.on('error', self.emit.bind(self, 'error'))
 
     self.emit('request', req, res)
   } catch (err) {
