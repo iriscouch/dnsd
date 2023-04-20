@@ -2,6 +2,7 @@
 //
 // Test displaying DNS records
 
+var events = require('events')
 var util = require('util')
 
 var parse = require('./parse')
@@ -37,8 +38,10 @@ var SECTIONS = ['question', 'answer', 'authority', 'additional']
 // * toString() - return a human-readable representation of this message
 // * toJSON() - Return a JSON-friendly represenation of this message
 // * toBinary() - Return a buffer of the encoded message
+util.inherits(DNSMessage, events.EventEmitter)
 function DNSMessage (body) {
   var self = this
+  events.EventEmitter.call(self)
 
   this.id = null
   this.type                = null
